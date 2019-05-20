@@ -45,6 +45,10 @@ class SeismicCanvas(scene.SceneCanvas):
       xyz_axis.update_axis()
       self.events.mouse_move.connect(xyz_axis.on_mouse_move)
 
+    # Manage the selected visual node.
+    self.selected = None # no selection by default
+    self.cursor_on = None # the visual node that cursor hovers on
+
     # Automatically set the range of the canvas, display, and wrap up.
     self.camera.set_range()
     self.show()
@@ -58,26 +62,46 @@ class SeismicCanvas(scene.SceneCanvas):
       # https://github.com/vispy/vispy/issues/1336
       self.view.interactive = False
 
-      # Only interactive visual nodes will be selected, otherwise None.
-      selected = self.visual_at(event.pos)
-      if selected is not None:
-        print(selected)
-        # Highlight with yellow.
+      if event.button == 1:
+        cursor_on = self.visual_at(event.pos)
+        if self.cursor_on is not None and cursor_on == self.cursor_on:
+          self.cursor_on.highlight.visible = True
+      else:
 
-        # import numpy as np
-        # tr = self.scene.node_transform(selected)
+        # Update the cursor_on when mouse moves.
+        cursor_on = self.visual_at(event.pos)
+        if cursor_on != self.cursor_on: # when moving to a new visual node
+          if self.cursor_on is not None: # de-highlight the previous cursor_on
+            self.cursor_on.highlight.visible = False
+          self.cursor_on = cursor_on # update the cursor_on
 
-        # click_pos = tr.map([*event.pos, 0, 1])
-        # click_pos /= click_pos[3]
+        # Only interactive visual nodes will be detected, otherwise None.
+        if self.cursor_on is not None:
+          self.cursor_on.highlight.visible = True
 
-        # view_vector = tr.map([*event.pos, 1])[:3]
-        # view_vector /= np.linalg.norm(view_vector)
+          # import numpy as np
+          # tr = self.scene.node_transform(selected)
 
-        # # axis_to_index = {'x':0, 'y':1, 'z':2}
-        # # i = axis_to_index[selected.axis]
-        # distance = (selected.pos - click_pos[2]) / view_vector[2]
-        # project_point = click_pos[:3] + distance * view_vector
-        # print(project_point)
+          # click_pos = tr.map([*event.pos, 0, 1])
+          # click_pos /= click_pos[3]
+
+          # view_vector = tr.map([*event.pos, 1])[:3]
+          # view_vector /= np.linalg.norm(view_vector)
+
+          # # axis_to_index = {'x':0, 'y':1, 'z':2}
+          # # i = axis_to_index[selected.axis]
+          # distance = (selected.pos - click_pos[2]) / view_vector[2]
+          # project_point = click_pos[:3] + distance * view_vector
+          # print(project_point)
 
       # Reenable the ViewBox interactive flag.
       self.view.interactive = True
+
+    # Cancel selection and highlight if release <Ctrl>.
+    else:
+      if self.cursor_on is not None:
+        self.cursor_on.highlight.visible = False
+        self.cursor_on = None
+      if self.selected is not None:
+        self.selected.highlight.visible = False
+        self.selected = None

@@ -25,7 +25,6 @@ class AxisAlignedImage(scene.visuals.Image):
     self.axis = axis
     self.pos = pos
 
-    self.selected = False # not selected by default
     # The selection highlight (a Plane visual with transparent color).
     # The plane is initialized before any rotation, on '+z' direction.
     self.highlight = scene.visuals.Plane(parent=self,
