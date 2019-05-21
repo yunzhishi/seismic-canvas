@@ -37,6 +37,10 @@ class AxisAlignedImage(scene.visuals.Image):
     self.highlight.set_gl_state('additive')
     self.highlight.visible = False # only show when selected
 
+    # Set the anchor point (2D local world coordinates). The mouse will
+    # drag this image by the anchor point moving in the normal direction.
+    self.anchor = (0, 0) # set at origin point by default
+
     # Apply SRT transform according to the axis attribute.
     self.transform = MatrixTransform()
     if self.axis == 'z':
@@ -66,89 +70,28 @@ class AxisAlignedImage(scene.visuals.Image):
       raise ValueError('Invalid value for axis.')
     self._axis = value
 
-  # def on_mouse_move(self, event):
-  #   # Hold <Ctrl> to enter node-selection mode.
-  #   if keys.CONTROL in event.modifiers:
-  #     # Temporarily disable the interactive flag of the ViewBox because it
-  #     # is masking all the visuals. See details at:
-  #     # https://github.com/vispy/vispy/issues/1336
-  #     self.canvas.view.interactive = False
+  def drag_visual_node(self, drag_event):
+    """ Drag this visual node according to the drag_event.
+    The visual node's position should be updated following the mouse position.
+    """
+    # Get the screen-to-local transform to get camera coordinates.
+    tr = self.canvas.scene.node_transform(self)
 
-  #     if self.canvas.visual_at(event.pos) == self:
-  #       # Highlight when mouse moves over self:
-  #       self.highlight.visible = True
-  #       if event.button == 1:
-  #         self.selected = True # select self when left click
-  #         # TODO: perform translation
-  #         pass
-  #       else:
-  #         self.selected = False # otherwise, deselect
-  #     elif not self.selected:
-  #       # Cancel highlight if mouse moves away and not selected.
-  #       self.highlight.visible = False
+    # Get click (camera) coordinate in the local world.
+    click_pos = tr.map([*drag_event.pos, 0, 1])
+    click_pos /= click_pos[3] # rescale to cancel out the pos.w factor
+    # Get the view direction (camera-to-target) vector in the local world.
+    # TODO: this vector is actually slightly distorted in perspective
+    # (non-orthogonal) projection, so very subtle inaccuracy can occur!
+    view_vector = tr.map([*drag_event.pos, 1, 1])[:3]
+    view_vector /= np.linalg.norm(view_vector) # normalize to unit vector
 
-  #     # Reenable the ViewBox interactive flag.
-  #     self.canvas.view.interactive = True
-
-  #   # Cancel selection and highlight if release <Ctrl>.
-  #   else:
-  #     self.selected = False
-  #     self.highlight.visible = False
-
-        # import numpy as np
-        # tr = self.scene.node_transform(selected)
-
-        # click_pos = tr.map([*event.pos, 0, 1])
-        # click_pos /= click_pos[3]
-
-        # view_vector = tr.map([*event.pos, 1])[:3]
-        # view_vector /= np.linalg.norm(view_vector)
-
-        # # axis_to_index = {'x':0, 'y':1, 'z':2}
-        # # i = axis_to_index[selected.axis]
-        # distance = (selected.pos - click_pos[2]) / view_vector[2]
-        # project_point = click_pos[:3] + distance * view_vector
-        # print(project_point)
-
-  # def on_mouse_drag(self, event):
-  #   # Hold <Ctrl> and drag with left button will move the highlight plane
-  #   # first, then the image will also follow after mouse button release.
-  #   if keys.CONTROL in event.modifiers and event.button==1:
-  #     # Temporarily disable the interactive flag of the ViewBox because it
-  #     # is masking all the visuals. See details at:
-  #     # https://github.com/vispy/vispy/issues/1336
-  #     self.canvas.view.interactive = False
-
-  #     if self.canvas.visual_at(event.pos) == self:
-  #       self.selected = True
-  #       self.highlight.visible = True
-
-  # def on_mouse_press(self, event):
-  #   # Hold <Ctrl> and press with left button will select the corresponding
-  #   # AxisAlignedImage, and highlight it.
-  #   if keys.CONTROL in event.modifiers and event.button==1:
-  #     # Temporarily disable the interactive flag of the ViewBox because it
-  #     # is masking all the visuals. See details at:
-  #     # https://github.com/vispy/vispy/issues/1336
-  #     self.canvas.view.interactive = False
-
-  #     if self.canvas.visual_at(event.pos) == self:
-  #       self.selected = True
-  #       self.highlight.visible = True
-  #     else:
-  #       self.selected = False
-  #       self.highlight.visible = False
-
-  #     # Reenable the ViewBox interactive flag.
-  #     self.canvas.view.interactive = True
-
-    # if event.button == 1:
-    #   if self.axis == 'z':
-    #     # tr = self.canvas.view.scene.node_transform(self)
-    #     tr = self.parent.transforms.get_transform('render', 'visual')
-    #     pos = tr.map(event.pos)
-    #     print('AXIS {} - x={:6.1f}, y={:6.1f}, z={:6.1f}'.format(
-    #       self.axis.upper(), pos[0], pos[1], pos[2]))
+    # Get distance from camera to the drag anchor point on the image plane.
+    # Eq 1: click_pos + distance * view_vector = anchor
+    # Eq 2: anchor[2] = self.pos  <- direction normal to the plane
+    # The following equation can be derived by Eq 1 and Eq 2.
+    distance = (self.pos - click_pos[2]) / view_vector[2]
+    anchor = click_pos[:3] + distance * view_vector # we only need vec3
 
   def _compute_bounds(self, axis_3d, view):
     """ Overwrite the original 2D bounds of the Image class. This will correct 

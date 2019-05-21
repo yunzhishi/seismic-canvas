@@ -18,7 +18,7 @@ class XYZAxis(scene.visuals.XYZAxis):
     scene.visuals.XYZAxis.__init__(self, parent=parent,
                                    width=width, antialias=antialias)
     self.unfreeze()
-    self.interactive = True
+    self.interactive = False
     self.visible = visible
 
     # The axis legend is rotated to align with the parent camera. Then put

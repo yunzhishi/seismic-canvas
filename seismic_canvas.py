@@ -47,12 +47,38 @@ class SeismicCanvas(scene.SceneCanvas):
 
     # Manage the selected visual node.
     self.selected = None # no selection by default
-    self.cursor_on = None # the visual node that cursor hovers on
+    self.hover_on = None # visual node that mouse hovers on, None by default
 
     # Automatically set the range of the canvas, display, and wrap up.
     self.camera.set_range()
     self.show()
     self.freeze()
+
+  def on_mouse_press(self, event):
+    # Hold <Ctrl> to enter node-selection mode.
+    if keys.CONTROL in event.modifiers:
+      # Temporarily disable the interactive flag of the ViewBox because it
+      # is masking all the visuals. See details at:
+      # https://github.com/vispy/vispy/issues/1336
+      self.view.interactive = False
+      hover_on = self.visual_at(event.pos)
+
+      if event.button == 1 and self.selected is None:
+        # If no previous selection, make a new selection if cilck on a valid
+        # visual node, and highlight this node.
+        if hover_on is not None:
+          self.selected = hover_on
+          self.selected.highlight.visible = True
+        # Nothing to do if the cursor is NOT on a valid visual node.
+
+      # Reenable the ViewBox interactive flag.
+      self.view.interactive = True
+
+  def on_mouse_release(self, event):
+    # Hold <Ctrl> to enter node-selection mode.
+    if keys.CONTROL in event.modifiers:
+      # If the left cilck is released, deselect any previous selection.
+      self.selected = None
 
   def on_mouse_move(self, event):
     # Hold <Ctrl> to enter node-selection mode.
@@ -61,47 +87,40 @@ class SeismicCanvas(scene.SceneCanvas):
       # is masking all the visuals. See details at:
       # https://github.com/vispy/vispy/issues/1336
       self.view.interactive = False
+      hover_on = self.visual_at(event.pos)
 
       if event.button == 1:
-        cursor_on = self.visual_at(event.pos)
-        if self.cursor_on is not None and cursor_on == self.cursor_on:
-          self.cursor_on.highlight.visible = True
+        if self.selected is not None:
+          print("Drag function here!")
       else:
-
-        # Update the cursor_on when mouse moves.
-        cursor_on = self.visual_at(event.pos)
-        if cursor_on != self.cursor_on: # when moving to a new visual node
-          if self.cursor_on is not None: # de-highlight the previous cursor_on
-            self.cursor_on.highlight.visible = False
-          self.cursor_on = cursor_on # update the cursor_on
-
-        # Only interactive visual nodes will be detected, otherwise None.
-        if self.cursor_on is not None:
-          self.cursor_on.highlight.visible = True
-
-          # import numpy as np
-          # tr = self.scene.node_transform(selected)
-
-          # click_pos = tr.map([*event.pos, 0, 1])
-          # click_pos /= click_pos[3]
-
-          # view_vector = tr.map([*event.pos, 1])[:3]
-          # view_vector /= np.linalg.norm(view_vector)
-
-          # # axis_to_index = {'x':0, 'y':1, 'z':2}
-          # # i = axis_to_index[selected.axis]
-          # distance = (selected.pos - click_pos[2]) / view_vector[2]
-          # project_point = click_pos[:3] + distance * view_vector
-          # print(project_point)
+        # If the left cilck is released, update highlight to the new visual
+        # node that mouse hovers on.
+        if hover_on != self.hover_on:
+          if self.hover_on is not None: # de-highlight previous hover_on
+            self.hover_on.highlight.visible = False
+          self.hover_on = hover_on
+          if self.hover_on is not None: # highlight the new hover_on
+            self.hover_on.highlight.visible = True
 
       # Reenable the ViewBox interactive flag.
       self.view.interactive = True
 
+  def on_key_press(self, event):
+    # Hold <Ctrl> to enter node-selection mode.
+    if keys.CONTROL in event.modifiers:
+      # TODO: I cannot get the mouse position within the key_press event ...
+      # so it is not yet implemented. The purpose of this event handler
+      # is simply trying to highlight the visual node when <Ctrl> is pressed
+      # but mouse is not moved (just nicer interactivity), so not very
+      # high priority now.
+      pass
+
+  def on_key_release(self, event):
     # Cancel selection and highlight if release <Ctrl>.
-    else:
-      if self.cursor_on is not None:
-        self.cursor_on.highlight.visible = False
-        self.cursor_on = None
+    if keys.CONTROL not in event.modifiers:
+      if self.hover_on is not None:
+        self.hover_on.highlight.visible = False
+        self.hover_on = None
       if self.selected is not None:
         self.selected.highlight.visible = False
         self.selected = None
