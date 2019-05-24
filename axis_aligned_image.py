@@ -159,6 +159,7 @@ class AxisAlignedImage(scene.visuals.Image):
     # TODO: on Windows, sometimes I can see 'through' behind the canvas ...
     # need to solve this issue, but maybe related to Qt, no clue yet.
     self.highlight.set_gl_state('opaque', depth_test=True)
+    self.highlight._mesh.color = (1, 1, 0, 1.0) # change to solid color
 
   def update_location(self):
     """ Update the image plane to the dragged location and redraw this image.
@@ -180,7 +181,7 @@ class AxisAlignedImage(scene.visuals.Image):
       self.transform.rotate(90, (0, 0, 1))
       self.transform.translate((self.pos, 0, 0))
 
-    self.offset = 0 # reset to 0
+    self.offset = 0 # reset to 0 after dragging completes
 
   def reset_highlight(self):
     """ Reset highlight plane to its default position (z translate = 0), and
@@ -188,6 +189,7 @@ class AxisAlignedImage(scene.visuals.Image):
     """
     self._move_highlight()
     self.highlight.set_gl_state('additive', depth_test=False)
+    self.highlight._mesh.color = (1, 1, 0, 0.2) # revert back to transparent
 
   def _move_highlight(self, offset=0):
     """ Move the highlight plane in the normal direction. The input 'offset' is
