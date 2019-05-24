@@ -27,6 +27,7 @@ class AxisAlignedImage(scene.visuals.Image):
     # Determine the axis and position of this plane.
     self.axis = axis
     self.pos = pos
+    self.offset = 0 # this is used for dragging
 
     # The selection highlight (a Plane visual with transparent color).
     # The plane is initialized before any rotation, on '+z' direction.
@@ -46,18 +47,8 @@ class AxisAlignedImage(scene.visuals.Image):
 
     # Apply SRT transform according to the axis attribute.
     self.transform = MatrixTransform()
-    if self.axis == 'z':
-      # 1. No rotation to do for z axis (y-x) slice. Only translate.
-      self.transform.translate((0, 0, self.pos))
-    elif self.axis == 'y':
-      # 2. Rotation(s) for the y axis (z-x) slice, then translate:
-      self.transform.rotate(90, (1, 0, 0))
-      self.transform.translate((0, self.pos, 0))
-    elif self.axis == 'x':
-      # 3. Rotation(s) for the x axis (z-y) slice, then translate:
-      self.transform.rotate(90, (1, 0, 0))
-      self.transform.rotate(90, (0, 0, 1))
-      self.transform.translate((self.pos, 0, 0))
+    # Move the image plane to the corresponding location.
+    self.update_location()
 
     self.freeze()
 
@@ -95,9 +86,9 @@ class AxisAlignedImage(scene.visuals.Image):
 
     # Get distance from camera to the drag anchor point on the image plane.
     # Eq 1: click_pos + distance * view_vector = anchor
-    # Eq 2: anchor[2] = self.pos  <- direction normal to the plane
+    # Eq 2: anchor[2] = 0 <- intersects with the plane
     # The following equation can be derived by Eq 1 and Eq 2.
-    distance = (self.pos - click_pos[2]) / view_vector[2]
+    distance = (0. - click_pos[2]) / view_vector[2]
     self.anchor = click_pos[:2] + distance * view_vector[:2] # only need vec2
 
   def drag_visual_node(self, mouse_move_event):
@@ -157,16 +148,39 @@ class AxisAlignedImage(scene.visuals.Image):
     numerator = np.sum(numerator)
     denominator = view_vector[0]**2 + view_vector[1]**2
     shoot_distance = numerator / denominator
-    new_pos = new_anchor[2] + view_vector[2] * shoot_distance
-    offset = new_pos - self.pos
+    # Shoot from new_anchor to get the new intersect point. The z- coordinate
+    # of this point will be our dragging offset.
+    self.offset = new_anchor[2] + view_vector[2] * shoot_distance
 
     # Update the highlight plane position to give user a feedback, to show
     # where the image plane will be moved to.
-    self._move_highlight(offset=offset)
+    self._move_highlight(offset=self.offset)
     # Make the highlight visually stand out.
     # TODO: on Windows, sometimes I can see 'through' behind the canvas ...
     # need to solve this issue, but maybe related to Qt, no clue yet.
     self.highlight.set_gl_state('opaque', depth_test=True)
+
+  def update_location(self):
+    """ Update the image plane to the dragged location and redraw this image.
+    """
+    self.transform.reset()
+    if self.axis == 'z':
+      self.pos += self.offset
+      # 1. No rotation to do for z axis (y-x) slice. Only translate.
+      self.transform.translate((0, 0, self.pos))
+    elif self.axis == 'y':
+      self.pos -= self.offset # normal direction points to -y direction
+      # 2. Rotation(s) for the y axis (z-x) slice, then translate:
+      self.transform.rotate(90, (1, 0, 0))
+      self.transform.translate((0, self.pos, 0))
+    elif self.axis == 'x':
+      self.pos += self.offset
+      # 3. Rotation(s) for the x axis (z-y) slice, then translate:
+      self.transform.rotate(90, (1, 0, 0))
+      self.transform.rotate(90, (0, 0, 1))
+      self.transform.translate((self.pos, 0, 0))
+
+    self.offset = 0 # reset to 0
 
   def reset_highlight(self):
     """ Reset highlight plane to its default position (z translate = 0), and

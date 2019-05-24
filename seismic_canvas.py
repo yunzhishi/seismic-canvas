@@ -79,7 +79,9 @@ class SeismicCanvas(scene.SceneCanvas):
     # Hold <Ctrl> to enter node-selection mode.
     if keys.CONTROL in event.modifiers:
       if self.selected is not None:
-        # If the left click is released, erase the anchor point on this node.
+        # If the left click is released, complete the dragging operation.
+        self.selected.update_location()
+        # Erase the anchor point on this node.
         self.selected.anchor = None
         # Reset highlight to default state.
         self.selected.reset_highlight()
