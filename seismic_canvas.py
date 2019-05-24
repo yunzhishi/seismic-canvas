@@ -40,7 +40,8 @@ class SeismicCanvas(scene.SceneCanvas):
       # Set the parent to view, instead of view.scene, so that this legend will
       # stay at its location on the canvas, and won't rotate away.
       xyz_axis.parent = self.view
-      xyz_axis.update_axis()
+      xyz_axis.highlight.parent = self.view
+      xyz_axis._update_axis()
       self.events.mouse_move.connect(xyz_axis.on_mouse_move)
 
     # Manage the selected visual node.

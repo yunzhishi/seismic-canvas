@@ -27,7 +27,6 @@ class AxisAlignedImage(scene.visuals.Image):
     # Determine the axis and position of this plane.
     self.axis = axis
     self.pos = pos
-    self.offset = 0 # this is used for dragging
 
     # The selection highlight (a Plane visual with transparent color).
     # The plane is initialized before any rotation, on '+z' direction.
@@ -44,6 +43,7 @@ class AxisAlignedImage(scene.visuals.Image):
     # Set the anchor point (2D local world coordinates). The mouse will
     # drag this image by anchor point moving in the normal direction.
     self.anchor = None # None by default
+    self.offset = 0
 
     # Apply SRT transform according to the axis attribute.
     self.transform = MatrixTransform()
@@ -70,7 +70,7 @@ class AxisAlignedImage(scene.visuals.Image):
     in func 'drag_visual_node' will try to move along the normal direction
     and let the anchor follows user's mouse position as close as possible.
     After left click is released, this plane's position will be updated and
-    image shall be redrawn using func 'update_image'.
+    image shall be redrawn using func 'update_location'.
     """
     # Get the screen-to-local transform to get camera coordinates.
     tr = self.canvas.scene.node_transform(self)
@@ -97,8 +97,8 @@ class AxisAlignedImage(scene.visuals.Image):
     perpendicular to this image, and the anchor point (set with func
     'set_anchor') will move along the normal direction to stay as close to
     the mouse as possible, so that user feels like 'dragging' the highlight
-    plane. After releasing either click or <Ctrl>, the image will be updated
-    to 'follow' the highlight plane.
+    plane. After releasing either click, the image will be updated to follow
+    the highlight plane; if <Ctrl> is released, then dragging is canceled.
     """
     # Get the screen-to-local transform to get camera coordinates.
     tr = self.canvas.scene.node_transform(self)
@@ -156,8 +156,6 @@ class AxisAlignedImage(scene.visuals.Image):
     # where the image plane will be moved to.
     self._move_highlight(offset=self.offset)
     # Make the highlight visually stand out.
-    # TODO: on Windows, sometimes I can see 'through' behind the canvas ...
-    # need to solve this issue, but maybe related to Qt, no clue yet.
     self.highlight.set_gl_state('opaque', depth_test=True)
     self.highlight._mesh.color = (1, 1, 0, 1.0) # change to solid color
 
@@ -181,11 +179,13 @@ class AxisAlignedImage(scene.visuals.Image):
       self.transform.rotate(90, (0, 0, 1))
       self.transform.translate((self.pos, 0, 0))
 
-    self.offset = 0 # reset to 0 after dragging completes
+    # Reset attributes after dragging completes.
+    self.anchor = None
+    self.offset = 0
 
   def reset_highlight(self):
     """ Reset highlight plane to its default position (z translate = 0), and
-    Reset its gl_state to ['additive', depth_test=False].
+    reset its gl_state to ['additive', depth_test=False], alpha = 0.2.
     """
     self._move_highlight()
     self.highlight.set_gl_state('additive', depth_test=False)
