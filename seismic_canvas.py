@@ -34,8 +34,6 @@ class SeismicCanvas(scene.SceneCanvas):
     # Attach all main visual nodes (e.g. slices, meshs, volumes) to the ViewBox.
     for node in visual_nodes:
       self.view.add(node)
-      # self.events.mouse_move.connect(node.on_mouse_move)
-      # self.events.mouse_press.connect(node.on_mouse_press)
 
     # Connect the XYZAxis visual to the canvas.
     if xyz_axis is not None:
@@ -69,6 +67,9 @@ class SeismicCanvas(scene.SceneCanvas):
         if hover_on is not None:
           self.selected = hover_on
           self.selected.highlight.visible = True
+          # Set the anchor point on this node.
+          self.selected.set_anchor(event)
+
         # Nothing to do if the cursor is NOT on a valid visual node.
 
       # Reenable the ViewBox interactive flag.
@@ -77,8 +78,13 @@ class SeismicCanvas(scene.SceneCanvas):
   def on_mouse_release(self, event):
     # Hold <Ctrl> to enter node-selection mode.
     if keys.CONTROL in event.modifiers:
-      # If the left cilck is released, deselect any previous selection.
-      self.selected = None
+      if self.selected is not None:
+        # If the left click is released, erase the anchor point on this node.
+        self.selected.anchor = None
+        # Reset highlight to default state.
+        self.selected.reset_highlight()
+        # Then, deselect any previous selection.
+        self.selected = None
 
   def on_mouse_move(self, event):
     # Hold <Ctrl> to enter node-selection mode.
@@ -91,7 +97,7 @@ class SeismicCanvas(scene.SceneCanvas):
 
       if event.button == 1:
         if self.selected is not None:
-          print("Drag function here!")
+          self.selected.drag_visual_node(event)
       else:
         # If the left cilck is released, update highlight to the new visual
         # node that mouse hovers on.
@@ -123,4 +129,6 @@ class SeismicCanvas(scene.SceneCanvas):
         self.hover_on = None
       if self.selected is not None:
         self.selected.highlight.visible = False
+        self.selected.reset_highlight()
+        self.selected.anchor = None
         self.selected = None
