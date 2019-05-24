@@ -123,7 +123,7 @@ class AxisAlignedImage(scene.visuals.Image):
     # Compute the normal vector, starting from the anchor point and
     # perpendicular to the image plane.
     normal = [*self.anchor, self.pos+1, 1] # +[0,0,1,0] from anchor
-    normal_screen = tr.imap(normal) # screen coordinates of the end of normal
+    normal_screen = tr.imap(normal) # screen coordinates of anchor + [0,0,1,0]
     normal_screen /= normal_screen[3] # rescale to cancel out 'w' term
     normal_screen = normal_screen[:2] # only need vec2
     normal_screen -= anchor_screen # end - start = vector
@@ -131,13 +131,38 @@ class AxisAlignedImage(scene.visuals.Image):
 
     # Use the vector {anchor_screen -> mouse.pos} and project to the
     # normal_screen direction using dot product, we can get how far the plane
-    # should be moved.
+    # should be moved (on the screen!).
     drag_vector = mouse_move_event.pos[:2] - anchor_screen
     drag = np.dot(drag_vector, normal_screen) # normal_screen must be length 1
 
+    # We now need to convert the move distance from screen coordinates to
+    # local world coordinates. First, find where the anchor is on the screen
+    # after dragging; then, convert that screen point to a local line shooting
+    # across the normal vector; finally, find where the line comes directly
+    # above/below the anchor point (before dragging) and get that distance as
+    # the true dragging distance in local coordinates.
+    new_anchor_screen = anchor_screen + normal_screen * drag
+    new_anchor = tr.map([*new_anchor_screen, 0, 1])
+    new_anchor /= new_anchor[3] # rescale to cancel out the pos.w factor
+    view_vector = tr.map([*new_anchor_screen, 1, 1])[:3]
+    view_vector /= np.linalg.norm(view_vector) # normalize to unit vector
+    # Solve this equation:
+    # new_anchor := new_anchor + view_vector * ?,
+    # ^^^ describe a 3D line of possible new anchor positions
+    # arg min (?) |new_anchor[:2] - anchor[:2]|
+    # ^^^ find a point on that 3D line that minimize the 2D distance between
+    #     new_anchor and anchor.
+    numerator = anchor[:2] - new_anchor[:2]
+    numerator *= view_vector[:2] # element-wise multiplication
+    numerator = np.sum(numerator)
+    denominator = view_vector[0]**2 + view_vector[1]**2
+    shoot_distance = numerator / denominator
+    new_pos = new_anchor[2] + view_vector[2] * shoot_distance
+    offset = new_pos - self.pos
+
     # Update the highlight plane position to give user a feedback, to show
     # where the image plane will be moved to.
-    self._move_highlight(offset=drag)
+    self._move_highlight(offset=offset)
     # Make the highlight visually stand out.
     # TODO: on Windows, sometimes I can see 'through' behind the canvas ...
     # need to solve this issue, but maybe related to Qt, no clue yet.
