@@ -25,11 +25,11 @@ if __name__ == '__main__':
 
   # Collect all visual nodes.
   visual_nodes = []
-  image_node_z = AxisAlignedImage(image, pos=30)
+  image_node_z = AxisAlignedImage(image, pos=30, limit=(0, image.shape[0]))
   visual_nodes.append(image_node_z)
-  image_node_y = AxisAlignedImage(image, axis='y', pos=20)
+  image_node_y = AxisAlignedImage(image, axis='y', pos=20, limit=(0, image.shape[0]))
   visual_nodes.append(image_node_y)
-  image_node_x = AxisAlignedImage(image, axis='x', pos=10)
+  image_node_x = AxisAlignedImage(image, axis='x', pos=10, limit=(0, image.shape[1]))
   visual_nodes.append(image_node_x)
 
   # Add an axis legend.

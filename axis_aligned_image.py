@@ -14,7 +14,7 @@ class AxisAlignedImage(scene.visuals.Image):
   Parameters:
 
   """
-  def __init__(self, data, axis='z', pos=0):
+  def __init__(self, data, axis='z', pos=0, limit=None):
     # Create an Image obj and unfreeze it so we can add more
     # attributes inside.
     scene.visuals.Image.__init__(self, data, parent=None)
@@ -26,7 +26,12 @@ class AxisAlignedImage(scene.visuals.Image):
 
     # Determine the axis and position of this plane.
     self.axis = axis
+    # Check if pos is within the range.
+    if limit is not None:
+      assert (pos>=limit[0]) and (pos<=limit[1]), \
+        'pos={} is outside limit={} range.'.format(pos, limit)
     self.pos = pos
+    self.limit = limit
 
     # The selection highlight (a Plane visual with transparent color).
     # The plane is initialized before any rotation, on '+z' direction.
@@ -150,11 +155,21 @@ class AxisAlignedImage(scene.visuals.Image):
     shoot_distance = numerator / denominator
     # Shoot from new_anchor to get the new intersect point. The z- coordinate
     # of this point will be our dragging offset.
-    self.offset = new_anchor[2] + view_vector[2] * shoot_distance
+    offset = new_anchor[2] + view_vector[2] * shoot_distance
+
+    # Note: must reverse normal direction from -y direction to +y!
+    if self.axis == 'y': offset = -offset
+    # Limit the dragging within range.
+    if self.limit is not None:
+      if self.pos + offset < self.limit[0]: offset = self.limit[0] - self.pos
+      if self.pos + offset > self.limit[1]: offset = self.limit[1] - self.pos
+    self.offset = offset
+    # Note: must reverse normal direction from +y direction to -y!
+    if self.axis == 'y': offset = -offset
 
     # Update the highlight plane position to give user a feedback, to show
     # where the image plane will be moved to.
-    self._move_highlight(offset=self.offset)
+    self._move_highlight(offset=offset)
     # Make the highlight visually stand out.
     self.highlight.set_gl_state('opaque', depth_test=True)
     self.highlight._mesh.color = (1, 1, 0, 1.0) # change to solid color
@@ -168,7 +183,7 @@ class AxisAlignedImage(scene.visuals.Image):
       # 1. No rotation to do for z axis (y-x) slice. Only translate.
       self.transform.translate((0, 0, self.pos))
     elif self.axis == 'y':
-      self.pos -= self.offset # normal direction points to -y direction
+      self.pos += self.offset
       # 2. Rotation(s) for the y axis (z-x) slice, then translate:
       self.transform.rotate(90, (1, 0, 0))
       self.transform.translate((0, self.pos, 0))
@@ -182,6 +197,7 @@ class AxisAlignedImage(scene.visuals.Image):
     # Reset attributes after dragging completes.
     self.anchor = None
     self.offset = 0
+    self._bounds_changed() # update the bounds with new self.pos
 
   def reset_highlight(self):
     """ Reset highlight plane to its default position (z translate = 0), and
