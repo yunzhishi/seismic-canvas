@@ -13,8 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from vispy import scene
+from vispy import scene, io
 from vispy.util import keys
+from vispy.gloo.util import _screenshot
+
+from .xyz_axis import XYZAxis
 
 
 class SeismicCanvas(scene.SceneCanvas):
@@ -41,7 +44,7 @@ class SeismicCanvas(scene.SceneCanvas):
     self.view = self.central_widget.add_view()
     self.camera = scene.cameras.TurntableCamera(
       fov=fov, azimuth=azimuth, elevation=elevation)
-    # self.camera = scene.cameras.PanZoomCamera()
+    self.fov = fov; self.azimuth = azimuth; self.elevation = elevation
     self.view.camera = self.camera
 
     # Attach all main visual nodes (e.g. slices, meshs, volumes) to the ViewBox.
@@ -140,6 +143,19 @@ class SeismicCanvas(scene.SceneCanvas):
       # but mouse is not moved (just nicer interactivity), so not very
       # high priority now.
       pass
+    # Press <Space> to reset camera.
+    if event.text == ' ':
+      self.camera.fov = self.fov
+      self.camera.azimuth = self.azimuth
+      self.camera.elevation = self.elevation
+      self.camera.set_range()
+      for child in self.view.children:
+        if type(child) == XYZAxis:
+          child._update_axis()
+    # Press <s> to save a screenshot.
+    if event.text == 's':
+      screenshot = _screenshot()
+      io.write_png(self.title + '.png', screenshot)
 
   def on_key_release(self, event):
     # Cancel selection and highlight if release <Ctrl>.
