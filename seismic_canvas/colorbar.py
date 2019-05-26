@@ -53,7 +53,7 @@ class Colorbar(scene.visuals.ColorBar):
     self.highlight = scene.visuals.Rectangle(parent=parent,
       center=self.pos, height=height+10, width=width+10,
       color=(1, 1, 0, 0.5)) # transparent yellow color
-    self.highlight.set_gl_state(depth_test=False) # stand out highlight
+    self.highlight.set_gl_state('opaque', depth_test=True)
     self.highlight.visible = False # only show when selected
 
     # Set the anchor point (2D screen coordinates). The mouse will
