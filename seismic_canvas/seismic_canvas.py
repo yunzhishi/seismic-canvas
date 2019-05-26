@@ -1,5 +1,17 @@
-# Copyright (c) Yunzhi Shi. All Rights Reserved.
-# Distributed under the (new) BSD License. See LICENSE.txt for more info.
+# Copyright (C) 2019 Yunzhi Shi @ The University of Texas at Austin.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from vispy import scene
 from vispy.util import keys
@@ -14,13 +26,14 @@ class SeismicCanvas(scene.SceneCanvas):
 
   """
   def __init__(self, size=(800, 800), bgcolor='white',
-               visual_nodes=[],
+               visual_nodes=[], xyz_axis=None,
                fov=45, azimuth=120, elevation=30,
-               xyz_axis=None):
+               title='Seismic Canvas'):
     # Create a SceneCanvas obj and unfreeze it so we can add more
     # attributes inside.
     scene.SceneCanvas.__init__(
-      self, keys='interactive', size=size, bgcolor=bgcolor)
+      self, keys='interactive', size=size, bgcolor=bgcolor,
+      title=title)
     self.unfreeze()
 
     # Attach a ViewBox to this canvas and initiate the camera with the given

@@ -1,10 +1,22 @@
-# Copyright (c) Yunzhi Shi. All Rights Reserved.
-# Distributed under the (new) BSD License. See LICENSE.txt for more info.
+# Copyright (C) 2019 Yunzhi Shi @ The University of Texas at Austin.
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
 from vispy import scene
 
-from axis_aligned_image import AxisAlignedImage
+from .axis_aligned_image import AxisAlignedImage
 
 
 def volume_slices(volume, x_pos=None, y_pos=None, z_pos=None,
