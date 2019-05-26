@@ -19,6 +19,7 @@ from vispy.gloo.util import _screenshot
 
 from .xyz_axis import XYZAxis
 from .colorbar import Colorbar
+from .axis_aligned_image import AxisAlignedImage
 
 
 class SeismicCanvas(scene.SceneCanvas):
@@ -31,8 +32,9 @@ class SeismicCanvas(scene.SceneCanvas):
   """
   def __init__(self, size=(800, 720), bgcolor='white',
                visual_nodes=[], xyz_axis=None, colorbar=None,
+               scale_factor=None, center=None,
                fov=45, azimuth=120, elevation=30,
-               title='Seismic Canvas'):
+               auto_range=True, title='Seismic Canvas'):
     # Create a SceneCanvas obj and unfreeze it so we can add more
     # attributes inside.
     scene.SceneCanvas.__init__(
@@ -43,7 +45,11 @@ class SeismicCanvas(scene.SceneCanvas):
     # Attach a ViewBox to this canvas and initiate the camera with the given
     # parameters.
     self.view = self.central_widget.add_view()
+    if not ( auto_range or (scale_factor and center) ):
+      raise ValueError("scale_factor and center cannot be None" +
+                       " when auto_range=False")
     self.camera = scene.cameras.TurntableCamera(
+      scale_factor=scale_factor, center=center,
       fov=fov, azimuth=azimuth, elevation=elevation)
     self.fov = fov; self.azimuth = azimuth; self.elevation = elevation
     self.view.camera = self.camera
@@ -78,7 +84,7 @@ class SeismicCanvas(scene.SceneCanvas):
     self.hover_on = None # visual node that mouse hovers on, None by default
 
     # Automatically set the range of the canvas, display, and wrap up.
-    self.camera.set_range()
+    if auto_range: self.camera.set_range()
     self.show()
     self.freeze()
 
@@ -176,6 +182,33 @@ class SeismicCanvas(scene.SceneCanvas):
         self._exit_drag_mode()
         self.camera.viewbox.events.mouse_move.connect(
           self.camera.viewbox_mouse_event)
+    # Press <a> to get the parameters of all visual nodes.
+    if event.text == 'a':
+      print("===== All useful parameters ====")
+      # Canvas size.
+      print("Canvas size = {}".format(self.size))
+      # Collect camera parameters.
+      print("Camera:")
+      camera_state = self.camera.get_state()
+      for key, value in camera_state.items():
+        print(" - {} = {}".format(key, value))
+      # Collect slice parameters.
+      print("Slices:")
+      pos_dict = {'x':[], 'y':[], 'z':[]}
+      for node in self.view.scene.children:
+        if type(node) == AxisAlignedImage:
+          pos = node.pos
+          if node.seismic_coord_system and node.axis in ['y', 'z']:
+            pos = node.limit[1] - pos # revert y and z axis
+          pos_dict[node.axis].append(pos)
+      for axis, pos in pos_dict.items():
+        print(" - {}: {}".format(axis, pos))
+      # Collect axis legend and colorbar parameters.
+      for node in self.view.children:
+        if type(node) == XYZAxis:
+          print("XYZAxis loc = {}".format(node.loc))
+        if type(node) == Colorbar:
+          print("Colorbar loc = {}".format(node.pos))
 
   def on_key_release(self, event):
     # Cancel selection and highlight if release <Ctrl>.

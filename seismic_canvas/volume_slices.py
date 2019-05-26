@@ -84,6 +84,7 @@ def volume_slices(volume, x_pos=None, y_pos=None, z_pos=None,
           pos = limit(axis)[1] - pos
         image_node = AxisAlignedImage(get_image_func(axis),
           axis=axis, pos=pos, limit=limit(axis),
+          seismic_coord_system=seismic_coord_system,
           cmap=cmap, clim=clim, interpolation=interpolation, method=method)
         slices_list.append(image_node)
 

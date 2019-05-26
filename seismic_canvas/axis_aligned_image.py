@@ -27,6 +27,7 @@ class AxisAlignedImage(scene.visuals.Image):
 
   """
   def __init__(self, image_func, axis='z', pos=0, limit=None,
+               seismic_coord_system=True,
                cmap='grays', clim=None, interpolation='nearest',
                method='auto'):
     # Create an Image obj and unfreeze it so we can add more
@@ -48,6 +49,7 @@ class AxisAlignedImage(scene.visuals.Image):
         'pos={} is outside limit={} range.'.format(pos, limit)
     self.pos = pos
     self.limit = limit
+    self.seismic_coord_system = seismic_coord_system
 
     # Get the image_func that returns either image or image shape.
     self.image_func = image_func

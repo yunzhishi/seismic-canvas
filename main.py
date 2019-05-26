@@ -30,19 +30,20 @@ if __name__ == '__main__':
   # volume = np.memmap('./F3_seismic.dat', dtype='>f4',
   #                    mode='r', shape=(420, 400, 100))
   # volume = np.fromfile('./CostaRica_seismic.dat', '>f4').reshape(825, 920, 210)
-  # volume = np.memmap('./CostaRica_seismic.dat', dtype='>f4',
-  #                    mode='r', shape=(825, 920, 210))
+  volume = np.memmap('./CostaRica_seismic.dat', dtype='>f4',
+                     mode='r', shape=(825, 920, 210))
   # volume = np.fromfile('./SEAM_seismic.dat', np.single).reshape(1169, 1002, 751)
-  volume = np.memmap('./SEAM_seismic.dat', dtype=np.single,
-                     mode='r', shape=(1169, 1002, 751))
+  # volume = np.memmap('./SEAM_seismic.dat', dtype=np.single,
+  #                    mode='r', shape=(1169, 1002, 751))
 
-  # Collect all visual nodes.
-  visual_nodes = volume_slices(volume,
-    # x_pos=50, y_pos=50, z_pos=90, clim=(-2, 2))
-    # x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120, clim=(-2, 2))
-    x_pos=[300, 600, 900], y_pos=500, z_pos=700, cmap='viridis', clim=(1, 5))
+  cmap='grays'; clim=(-2, 2)
+  # cmap = 'viridis'; clim=(1, 5)
+  visual_nodes = volume_slices(volume, cmap=cmap, clim=clim,
+    # x_pos=50, y_pos=50, z_pos=90)
+    x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120)
+    # x_pos=[300, 600, 900], y_pos=500, z_pos=700)
   xyz_axis = XYZAxis()
-  colorbar = Colorbar(cmap='viridis', clim=(1, 5))
+  colorbar = Colorbar(cmap=cmap, clim=clim)
 
 
   # # Test 2: brain CT data.
@@ -51,18 +52,24 @@ if __name__ == '__main__':
   # volume = np.load(io.load_data_file('brain/mri.npz'))['data']
   # volume = volume.transpose(2, 0, 1)[:, :, ::-1]
 
-  # # Collect all visual nodes.
   # visual_nodes = volume_slices(volume,
   #   x_pos=100, y_pos=128, z_pos=30,
   #   seismic_coord_system=False)
-
-  # # Add an axis legend.
   # xyz_axis = XYZAxis(seismic_coord_system=False)
+  # colorbar = Colorbar(cmap='grays', clim=(volume.min(), volume.max()))
 
 
   # Run the canvas.
   canvas = SeismicCanvas(visual_nodes=visual_nodes,
                          xyz_axis=xyz_axis,
-                         colorbar=colorbar)
-  canvas.measure_fps()
+                         colorbar=colorbar,
+                         # Manual camera setting below.
+                         # auto_range=False,
+                         # scale_factor=972.794,
+                         # center=(434.46, 545.63, 10.26),
+                         # fov=45,
+                         # elevation=54.5,
+                         # azimuth=113.5
+                         )
+  # canvas.measure_fps()
   canvas.app.run()

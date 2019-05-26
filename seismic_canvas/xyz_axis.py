@@ -106,6 +106,7 @@ class XYZAxis(scene.visuals.XYZAxis):
     """ Update the axis plane to the dragged location and redraw.
     """
     self.loc += self.offset
+    self.loc = tuple(self.loc)
     self._update_axis()
 
     # Reset attributes after dragging completes.
