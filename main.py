@@ -19,7 +19,7 @@ to interactively drag the slices, includes useful features such as colorbar
 and axis legend, and can output the figure to .png file with various resolution.
 """
 
-from seismic_canvas import (SeismicCanvas, volume_slices, XYZAxis)
+from seismic_canvas import (SeismicCanvas, volume_slices, XYZAxis, Colorbar)
 
 
 if __name__ == '__main__':
@@ -41,9 +41,8 @@ if __name__ == '__main__':
     # x_pos=50, y_pos=50, z_pos=90, clim=(-2, 2))
     # x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120, clim=(-2, 2))
     x_pos=[300, 600, 900], y_pos=500, z_pos=700, cmap='viridis', clim=(1, 5))
-
-  # Add an axis legend.
   xyz_axis = XYZAxis()
+  colorbar = Colorbar(cmap='viridis', clim=(1, 5))
 
 
   # # Test 2: brain CT data.
@@ -62,6 +61,8 @@ if __name__ == '__main__':
 
 
   # Run the canvas.
-  canvas = SeismicCanvas(visual_nodes=visual_nodes, xyz_axis=xyz_axis)
+  canvas = SeismicCanvas(visual_nodes=visual_nodes,
+                         xyz_axis=xyz_axis,
+                         colorbar=colorbar)
   canvas.measure_fps()
   canvas.app.run()

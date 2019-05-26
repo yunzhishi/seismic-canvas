@@ -25,15 +25,16 @@ class XYZAxis(scene.visuals.XYZAxis):
   Parameters:
 
   """
-  def __init__(self, loc=(60, 60), size=50, visible=True,
-               seismic_coord_system=True,
-               width=2, antialias=True, parent=None):
+  def __init__(self, loc=(80, 72), size=60, seismic_coord_system=True,
+               width=2, antialias=True,
+               visible=True, parent=None):
     # Create a scene.visuals.XYZAxis (without parent by default).
     scene.visuals.XYZAxis.__init__(self, parent=parent,
                                    width=width, antialias=antialias)
     self.interactive = True
     self.unfreeze()
     self.visible = visible
+    self.canvas_size = None # will be set when parent is linked
 
     # Determine the size and position.
     self.loc = loc
@@ -51,7 +52,7 @@ class XYZAxis(scene.visuals.XYZAxis):
     # Set the anchor point (2D screen coordinates). The mouse will
     # drag the axis by anchor point to move around the screen.
     self.anchor = None # None by default
-    self.offset = 0
+    self.offset = np.array([0, 0])
 
     # The axis legend is rotated to align with the parent camera. Then put
     # the legend to specified location and scale up to desired size.
@@ -61,7 +62,18 @@ class XYZAxis(scene.visuals.XYZAxis):
 
     self.freeze()
 
+  def on_resize(self, event):
+    # When window is resized, move the node accordingly.
+    loc = np.array(self.loc).astype(np.single)
+    loc *= (np.array(event.size).astype(np.single)
+            / np.array(self.canvas_size).astype(np.single))
+    self.loc = tuple(loc)
+    self._update_location()
+    # Update the canvas size.
+    self.canvas_size = event.size
+
   def on_mouse_move(self, event):
+    # Make sure the axis is rotating with the camera.
     if event.button == 1 and event.is_dragging:
       self._update_axis()
 
@@ -97,7 +109,7 @@ class XYZAxis(scene.visuals.XYZAxis):
     self._update_axis()
 
     # Reset attributes after dragging completes.
-    self.offset = 0
+    self.offset = np.array([0, 0])
 
   def _update_axis(self):
     """ Align the axis legend with the current camera rotation, scale up to

@@ -17,3 +17,4 @@ from .seismic_canvas import SeismicCanvas
 from .axis_aligned_image import AxisAlignedImage
 from .volume_slices import volume_slices
 from .xyz_axis import XYZAxis
+from .colorbar import Colorbar

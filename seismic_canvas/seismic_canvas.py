@@ -18,6 +18,7 @@ from vispy.util import keys
 from vispy.gloo.util import _screenshot
 
 from .xyz_axis import XYZAxis
+from .colorbar import Colorbar
 
 
 class SeismicCanvas(scene.SceneCanvas):
@@ -28,8 +29,8 @@ class SeismicCanvas(scene.SceneCanvas):
   Parameters:
 
   """
-  def __init__(self, size=(800, 800), bgcolor='white',
-               visual_nodes=[], xyz_axis=None,
+  def __init__(self, size=(800, 720), bgcolor='white',
+               visual_nodes=[], xyz_axis=None, colorbar=None,
                fov=45, azimuth=120, elevation=30,
                title='Seismic Canvas'):
     # Create a SceneCanvas obj and unfreeze it so we can add more
@@ -56,9 +57,20 @@ class SeismicCanvas(scene.SceneCanvas):
       # Set the parent to view, instead of view.scene, so that this legend will
       # stay at its location on the canvas, and won't rotate away.
       xyz_axis.parent = self.view
+      xyz_axis.canvas_size = self.size
+      self.events.resize.connect(xyz_axis.on_resize)
       xyz_axis.highlight.parent = self.view
       xyz_axis._update_axis()
       self.events.mouse_move.connect(xyz_axis.on_mouse_move)
+
+    # Connect the Colorbar visual to the canvas.
+    if colorbar is not None:
+      # Set the parent to view, instead of view.scene, so that the colorbar
+      # will stay at its location on the canvas, and won't rotate away.
+      colorbar.parent = self.view
+      colorbar.canvas_size = self.size
+      self.events.resize.connect(colorbar.on_resize)
+      colorbar.highlight.parent = self.view
 
     # Manage the selected visual node.
     self.drag_mode = False
@@ -71,7 +83,7 @@ class SeismicCanvas(scene.SceneCanvas):
     self.freeze()
 
   def on_mouse_press(self, event):
-    # Hold <Ctrl> to enter node-selection mode.
+    # Hold <Ctrl> to enter drag mode or press <d> to toggle.
     if keys.CONTROL in event.modifiers or self.drag_mode:
       # Temporarily disable the interactive flag of the ViewBox because it
       # is masking all the visuals. See details at:
@@ -94,7 +106,7 @@ class SeismicCanvas(scene.SceneCanvas):
       self.view.interactive = True
 
   def on_mouse_release(self, event):
-    # Hold <Ctrl> to enter node-selection mode.
+    # Hold <Ctrl> to enter drag mode or press <d> to toggle.
     if keys.CONTROL in event.modifiers or self.drag_mode:
       if self.selected is not None:
         # Erase the anchor point on this node.
@@ -103,7 +115,7 @@ class SeismicCanvas(scene.SceneCanvas):
         self.selected = None
 
   def on_mouse_move(self, event):
-    # Hold <Ctrl> to enter node-selection mode.
+    # Hold <Ctrl> to enter drag mode or press <d> to toggle.
     if keys.CONTROL in event.modifiers or self.drag_mode:
       # Temporarily disable the interactive flag of the ViewBox because it
       # is masking all the visuals. See details at:
@@ -132,7 +144,7 @@ class SeismicCanvas(scene.SceneCanvas):
       self.view.interactive = True
 
   def on_key_press(self, event):
-    # Hold <Ctrl> to enter node-selection mode.
+    # Hold <Ctrl> to enter drag mode.
     if keys.CONTROL in event.modifiers:
       # TODO: I cannot get the mouse position within the key_press event ...
       # so it is not yet implemented. The purpose of this event handler
