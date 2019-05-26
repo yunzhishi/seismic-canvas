@@ -14,6 +14,7 @@ class XYZAxis(scene.visuals.XYZAxis):
 
   """
   def __init__(self, loc=(60, 60), size=50, visible=True,
+               seismic_coord_system=True,
                width=2, antialias=True, parent=None):
     # Create a scene.visuals.XYZAxis (without parent by default).
     scene.visuals.XYZAxis.__init__(self, parent=parent,
@@ -25,6 +26,8 @@ class XYZAxis(scene.visuals.XYZAxis):
     # Determine the size and position.
     self.loc = loc
     self.size = size
+    # z-axis down seismic coordinate system, or z-axis up normal system.
+    self.seismic_coord_system = seismic_coord_system
 
     # The selection highlight (a Ellipse visual with transparent color).
     # The circle is centered on the axis legend.
@@ -109,6 +112,10 @@ class XYZAxis(scene.visuals.XYZAxis):
 
     tr = self.transform
     tr.reset() # remove all transforms (put back to origin)
+
+    # Revert y and z axis in seismic coordinate system.
+    if self.seismic_coord_system:
+      tr.scale((1, -1, -1))
 
     # Align camera rotation. This only works for turntable camera!!
     tr.rotate(90, (1, 0, 0)) # for some reason I have to do this at first ...
