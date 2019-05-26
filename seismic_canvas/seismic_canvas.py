@@ -61,6 +61,7 @@ class SeismicCanvas(scene.SceneCanvas):
       self.events.mouse_move.connect(xyz_axis.on_mouse_move)
 
     # Manage the selected visual node.
+    self.drag_mode = False
     self.selected = None # no selection by default
     self.hover_on = None # visual node that mouse hovers on, None by default
 
@@ -71,7 +72,7 @@ class SeismicCanvas(scene.SceneCanvas):
 
   def on_mouse_press(self, event):
     # Hold <Ctrl> to enter node-selection mode.
-    if keys.CONTROL in event.modifiers:
+    if keys.CONTROL in event.modifiers or self.drag_mode:
       # Temporarily disable the interactive flag of the ViewBox because it
       # is masking all the visuals. See details at:
       # https://github.com/vispy/vispy/issues/1336
@@ -94,7 +95,7 @@ class SeismicCanvas(scene.SceneCanvas):
 
   def on_mouse_release(self, event):
     # Hold <Ctrl> to enter node-selection mode.
-    if keys.CONTROL in event.modifiers:
+    if keys.CONTROL in event.modifiers or self.drag_mode:
       if self.selected is not None:
         # Erase the anchor point on this node.
         self.selected.anchor = None
@@ -103,7 +104,7 @@ class SeismicCanvas(scene.SceneCanvas):
 
   def on_mouse_move(self, event):
     # Hold <Ctrl> to enter node-selection mode.
-    if keys.CONTROL in event.modifiers:
+    if keys.CONTROL in event.modifiers or self.drag_mode:
       # Temporarily disable the interactive flag of the ViewBox because it
       # is masking all the visuals. See details at:
       # https://github.com/vispy/vispy/issues/1336
@@ -152,14 +153,28 @@ class SeismicCanvas(scene.SceneCanvas):
     if event.text == 's':
       screenshot = _screenshot()
       io.write_png(self.title + '.png', screenshot)
+    # Press <d> to toggle drag mode.
+    if event.text == 'd':
+      if not self.drag_mode:
+        self.drag_mode = True
+        self.camera.viewbox.events.mouse_move.disconnect(
+          self.camera.viewbox_mouse_event)
+      else:
+        self.drag_mode = False
+        self._exit_drag_mode()
+        self.camera.viewbox.events.mouse_move.connect(
+          self.camera.viewbox_mouse_event)
 
   def on_key_release(self, event):
     # Cancel selection and highlight if release <Ctrl>.
     if keys.CONTROL not in event.modifiers:
-      if self.hover_on is not None:
-        self.hover_on.highlight.visible = False
-        self.hover_on = None
-      if self.selected is not None:
-        self.selected.highlight.visible = False
-        self.selected.anchor = None
-        self.selected = None
+      self._exit_drag_mode()
+
+  def _exit_drag_mode(self):
+    if self.hover_on is not None:
+      self.hover_on.highlight.visible = False
+      self.hover_on = None
+    if self.selected is not None:
+      self.selected.highlight.visible = False
+      self.selected.anchor = None
+      self.selected = None
