@@ -57,7 +57,7 @@ class AxisAlignedImage(scene.visuals.Image):
     # The plane is initialized before any rotation, on '+z' direction.
     self.highlight = scene.visuals.Plane(parent=self,
       width=shape[0], height=shape[1], direction='+z',
-      color=(1, 1, 0, 0.2)) # transparent yellow color
+      color=(1, 1, 0, 0.1)) # transparent yellow color
     # Move the plane to align with the image.
     self.highlight.transform = STTransform(
       translate=(shape[0]/2, shape[1]/2, 0))
@@ -73,7 +73,7 @@ class AxisAlignedImage(scene.visuals.Image):
     # Apply SRT transform according to the axis attribute.
     self.transform = MatrixTransform()
     # Move the image plane to the corresponding location.
-    self.update_location()
+    self._update_location()
 
     self.freeze()
 
@@ -94,8 +94,6 @@ class AxisAlignedImage(scene.visuals.Image):
     in the selection mode (<Ctrl> pressed). After that, the dragging called
     in func 'drag_visual_node' will try to move along the normal direction
     and let the anchor follows user's mouse position as close as possible.
-    After left click is released, this plane's position will be updated and
-    image shall be redrawn using func 'update_location'.
     """
     # Get the screen-to-local transform to get camera coordinates.
     tr = self.canvas.scene.node_transform(self)
@@ -116,12 +114,10 @@ class AxisAlignedImage(scene.visuals.Image):
 
   def drag_visual_node(self, mouse_move_event):
     """ Drag this visual node while holding left click in the selection mode
-    (<Ctrl> pressed). The highlight plane will move in the normal direction
+    (<Ctrl> pressed). The plane will move in the normal direction
     perpendicular to this image, and the anchor point (set with func
     'set_anchor') will move along the normal direction to stay as close to
-    the mouse as possible, so that user feels like 'dragging' the highlight
-    plane. After releasing either click, the image will be updated to follow
-    the highlight plane; if <Ctrl> is released, then dragging is canceled.
+    the mouse as possible, so that user feels like 'dragging' the plane.
     """
     # Get the screen-to-local transform to get camera coordinates.
     tr = self.canvas.scene.node_transform(self)
@@ -185,14 +181,9 @@ class AxisAlignedImage(scene.visuals.Image):
     # Note: must reverse normal direction from +y direction to -y!
     if self.axis == 'y': offset = -offset
 
-    # Update the highlight plane position to give user a feedback, to show
-    # where the image plane will be moved to.
-    self._move_highlight(offset=offset)
-    # Make the highlight visually stand out.
-    self.highlight.set_gl_state('opaque', depth_test=True)
-    self.highlight._mesh.color = (1, 1, 0, 1.0) # change to solid color
+    self._update_location()
 
-  def update_location(self):
+  def _update_location(self):
     """ Update the image plane to the dragged location and redraw this image.
     """
     self.pos += self.offset
@@ -218,25 +209,8 @@ class AxisAlignedImage(scene.visuals.Image):
     self.set_data(self.image_func(self.pos).T)
 
     # Reset attributes after dragging completes.
-    self.anchor = None
     self.offset = 0
     self._bounds_changed() # update the bounds with new self.pos
-
-  def reset_highlight(self):
-    """ Reset highlight plane to its default position (z translate = 0), and
-    reset its gl_state to ['additive', depth_test=False], alpha = 0.2.
-    """
-    self._move_highlight()
-    self.highlight.set_gl_state('additive', depth_test=False)
-    self.highlight._mesh.color = (1, 1, 0, 0.2) # revert back to transparent
-
-  def _move_highlight(self, offset=0):
-    """ Move the highlight plane in the normal direction. The input 'offset' is
-    a float number (only 1 degree of freedom).
-    """
-    translate = self.highlight.transform.translate
-    translate[2] = offset # only move in normal direction (z direction)
-    self.highlight.transform.translate = translate
 
   def _compute_bounds(self, axis_3d, view):
     """ Overwrite the original 2D bounds of the Image class. This will correct 

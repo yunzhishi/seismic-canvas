@@ -96,12 +96,8 @@ class SeismicCanvas(scene.SceneCanvas):
     # Hold <Ctrl> to enter node-selection mode.
     if keys.CONTROL in event.modifiers:
       if self.selected is not None:
-        # If the left click is released, complete the dragging operation.
-        self.selected.update_location()
         # Erase the anchor point on this node.
         self.selected.anchor = None
-        # Reset highlight to default state.
-        self.selected.reset_highlight()
         # Then, deselect any previous selection.
         self.selected = None
 
@@ -165,6 +161,5 @@ class SeismicCanvas(scene.SceneCanvas):
         self.hover_on = None
       if self.selected is not None:
         self.selected.highlight.visible = False
-        self.selected.reset_highlight()
         self.selected.anchor = None
         self.selected = None

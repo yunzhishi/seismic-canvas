@@ -36,7 +36,13 @@ def volume_slices(volume, x_pos=None, y_pos=None, z_pos=None,
   shape = volume.shape
 
   # Automatically set clim (cmap range) if not specified.
-  if clim is None: clim = (volume.min(), volume.max())
+  if clim is None or clim=='auto':
+    if type(volume) == np.memmap:
+      from warnings import warn
+      warn("cmap='auto' with np.memmap can significantly impact launching " +
+           "time, cmap=(cmin, cmax) is recommended.",
+           UserWarning, stacklevel=2)
+    clim = (volume.min(), volume.max())
 
   # Function that returns the limitation of slice movement.
   def limit(axis):

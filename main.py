@@ -30,13 +30,17 @@ if __name__ == '__main__':
   # volume = np.memmap('./F3_seismic.dat', dtype='>f4',
   #                    mode='r', shape=(420, 400, 100))
   # volume = np.fromfile('./CostaRica_seismic.dat', '>f4').reshape(825, 920, 210)
-  volume = np.memmap('./CostaRica_seismic.dat', dtype='>f4',
-                     mode='r', shape=(825, 920, 210))
+  # volume = np.memmap('./CostaRica_seismic.dat', dtype='>f4',
+  #                    mode='r', shape=(825, 920, 210))
+  # volume = np.fromfile('./SEAM_seismic.dat', np.single).reshape(1169, 1002, 751)
+  volume = np.memmap('./SEAM_seismic.dat', dtype=np.single,
+                     mode='r', shape=(1169, 1002, 751))
 
   # Collect all visual nodes.
   visual_nodes = volume_slices(volume,
     # x_pos=50, y_pos=50, z_pos=90, clim=(-2, 2))
-    x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120, clim=(-2, 2))
+    # x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120, clim=(-2, 2))
+    x_pos=[300, 600, 900], y_pos=500, z_pos=700, cmap='viridis', clim=(1, 5))
 
   # Add an axis legend.
   xyz_axis = XYZAxis()

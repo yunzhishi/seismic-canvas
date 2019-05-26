@@ -70,8 +70,6 @@ class XYZAxis(scene.visuals.XYZAxis):
     in the selection mode (<Ctrl> pressed). After that, the dragging called
     in func 'drag_visual_node' will try to move around the screen and let the
     anchor follows user's mouse position.
-    After left click is released, this axis's position will be updated and
-    shall be redrawn using func 'update_location'.
     """
     # Get click coordinates on the screen.
     click_pos = mouse_press_event.pos
@@ -81,37 +79,24 @@ class XYZAxis(scene.visuals.XYZAxis):
 
   def drag_visual_node(self, mouse_move_event):
     """ Drag this visual node while holding left click in the selection mode
-    (<Ctrl> pressed). The highlight will move with the mouse (the anchor
+    (<Ctrl> pressed). The highlighted axis will move with the mouse (the anchor
     point will be 'hooked' to the mouse).
-    After releasing either click or <Ctrl>, the image will be updated
-    to 'follow' the highlight; if <Ctrl> is released, then dragging
-    is canceled.
     """
     # Compute the new axis legend center via dragging.
     new_center = mouse_move_event.pos[:2] - self.anchor
     # Get the offset from new_center to current axis center self.loc.
     self.offset = new_center - self.loc
 
-    # Update the highlight plane position to give user a feedback, to show
-    # where the axis will be moved to.
-    self.highlight.center = new_center
-    # Make the highlight visually stand out.
-    self.highlight._mesh.color = (1, 1, 0, 1.0) # change to solid color
+    self.highlight.center = new_center # move highlighte together with axis
+    self._update_location()
 
-  def reset_highlight(self):
-    """ Reset highlight to its default position, and reset its color.
-    """
-    self.highlight.center = self.loc
-    self.highlight._mesh.color = (1, 1, 0, 0.5) # revert back to transparent
-
-  def update_location(self):
+  def _update_location(self):
     """ Update the axis plane to the dragged location and redraw.
     """
     self.loc += self.offset
     self._update_axis()
 
     # Reset attributes after dragging completes.
-    self.anchor = None
     self.offset = 0
 
   def _update_axis(self):
