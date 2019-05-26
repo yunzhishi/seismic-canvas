@@ -19,7 +19,7 @@ visual_nodes = volume_slices(volume,
 
 <img src='./imgs/Camera.gif' alt='Camera' width=720/>
 
-**Dragging**: most elements are draggable. Hold 'Ctrl', the selectable visual nodes will be highlighted when your mouse hovers over them; left click and drag to move the highlight to the desired location, when mouse click is released, the node will update to that location. Volume slices automatically update their content based on the new location.
+**Dragging**: most elements are draggable. Hold 'Ctrl', the selectable visual nodes will be highlighted when your mouse hovers over them; left click and drag to move the highlighted visual node. The volume slices will update their contents in real-time during dragging.
 
 <img src='./imgs/Dragging.gif' alt='Dragging' width=720/>
 
@@ -33,6 +33,9 @@ volume = np.memmap('./CostaRica_seismic.dat', dtype='>f4',
                    mode='r', shape=(825, 920, 210))
 ```
 
+**Reproducibility**: when you arrange everything on the canvas, press 'A' to print out a collection of useful parameters that can be used to reproduce the current canvas setting.
+
+<img src='./imgs/Reproducibility.png' alt='Reproducibility' width=720/>
 
 Dependencies
 ------------
