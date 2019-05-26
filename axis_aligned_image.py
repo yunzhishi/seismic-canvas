@@ -92,8 +92,6 @@ class AxisAlignedImage(scene.visuals.Image):
     click_pos = tr.map([*mouse_press_event.pos, 0, 1])
     click_pos /= click_pos[3] # rescale to cancel out the pos.w factor
     # Get the view direction (camera-to-target) vector in the local world.
-    # TODO: this vector is actually slightly distorted in perspective
-    # (non-orthogonal) projection, so very subtle inaccuracy can occur!
     view_vector = tr.map([*mouse_press_event.pos, 1, 1])[:3]
     view_vector /= np.linalg.norm(view_vector) # normalize to unit vector
 
