@@ -14,10 +14,14 @@ class AxisAlignedImage(scene.visuals.Image):
   Parameters:
 
   """
-  def __init__(self, data, axis='z', pos=0, limit=None):
+  def __init__(self, image_func, axis='z', pos=0, limit=None,
+               cmap='grays', clim=None, interpolation='nearest',
+               method='auto'):
     # Create an Image obj and unfreeze it so we can add more
     # attributes inside.
-    scene.visuals.Image.__init__(self, data, parent=None)
+    assert clim is not None, 'clim must be specified!'
+    scene.visuals.Image.__init__(self, parent=None, # no image input yet
+      cmap=cmap, clim=clim, interpolation=interpolation, method=method)
     self.interactive = True
     self.unfreeze()
 
@@ -33,14 +37,18 @@ class AxisAlignedImage(scene.visuals.Image):
     self.pos = pos
     self.limit = limit
 
+    # Get the image_func that returns either image or image shape.
+    self.image_func = image_func
+    shape = self.image_func(self.pos, get_shape=True)
+
     # The selection highlight (a Plane visual with transparent color).
     # The plane is initialized before any rotation, on '+z' direction.
     self.highlight = scene.visuals.Plane(parent=self,
-      width=data.shape[1], height=data.shape[0], direction='+z',
+      width=shape[1], height=shape[0], direction='+z',
       color=(1, 1, 0, 0.2)) # transparent yellow color
     # Move the plane to align with the image.
     self.highlight.transform = STTransform(
-      translate=(data.shape[1]/2, data.shape[0]/2, 0))
+      translate=(shape[1]/2, shape[0]/2, 0))
     # This is to make sure we can see highlight plane through the images.
     self.highlight.set_gl_state('additive', depth_test=False)
     self.highlight.visible = False # only show when selected
@@ -177,22 +185,26 @@ class AxisAlignedImage(scene.visuals.Image):
   def update_location(self):
     """ Update the image plane to the dragged location and redraw this image.
     """
+    self.pos += self.offset
+    self.pos = int(np.round(self.pos)) # must round to nearest integer location
+
+    # Update the transformation in order to move to new location.
     self.transform.reset()
     if self.axis == 'z':
-      self.pos += self.offset
       # 1. No rotation to do for z axis (y-x) slice. Only translate.
       self.transform.translate((0, 0, self.pos))
     elif self.axis == 'y':
-      self.pos += self.offset
       # 2. Rotation(s) for the y axis (z-x) slice, then translate:
       self.transform.rotate(90, (1, 0, 0))
       self.transform.translate((0, self.pos, 0))
     elif self.axis == 'x':
-      self.pos += self.offset
       # 3. Rotation(s) for the x axis (z-y) slice, then translate:
       self.transform.rotate(90, (1, 0, 0))
       self.transform.rotate(90, (0, 0, 1))
       self.transform.translate((self.pos, 0, 0))
+
+    # Update image on the slice based on current position.
+    self.set_data(self.image_func(self.pos))
 
     # Reset attributes after dragging completes.
     self.anchor = None

@@ -9,28 +9,21 @@ and axis legend, and can output the figure to .png file with various resolution.
 
 from vispy import app
 
-from get_image import get_image
-from axis_aligned_image import AxisAlignedImage
+from volume_slices import volume_slices
 from xyz_axis import XYZAxis
 from seismic_canvas import SeismicCanvas
 
 
 if __name__ == '__main__':
   # Prepare the image data.
-  image = get_image()
+  from vispy import io
   import numpy as np
-  scale_x = np.linspace(1., 0., image.shape[0])[..., np.newaxis, np.newaxis]
-  scale_y = np.linspace(1., 0., image.shape[1])[np.newaxis, ..., np.newaxis]
-  image = (image * scale_x * scale_y).astype(np.ubyte)
+  volume = np.load(io.load_data_file('brain/mri.npz'))['data']
+  volume = np.flipud(np.rollaxis(volume, 1)) # rotate volume
 
   # Collect all visual nodes.
-  visual_nodes = []
-  image_node_z = AxisAlignedImage(image, pos=30, limit=(0, image.shape[0]))
-  visual_nodes.append(image_node_z)
-  image_node_y = AxisAlignedImage(image, axis='y', pos=20, limit=(0, image.shape[0]))
-  visual_nodes.append(image_node_y)
-  image_node_x = AxisAlignedImage(image, axis='x', pos=10, limit=(0, image.shape[1]))
-  visual_nodes.append(image_node_x)
+  visual_nodes = volume_slices(volume,
+    x_pos=10, y_pos=20, z_pos=30)
 
   # Add an axis legend.
   xyz_axis = XYZAxis()
