@@ -26,20 +26,34 @@ class AxisAlignedImage(scene.visuals.Image):
   Parameters:
 
   """
-  def __init__(self, image_func, axis='z', pos=0, limit=None,
+  def __init__(self, image_funcs, axis='z', pos=0, limit=None,
                seismic_coord_system=True,
-               cmap='grays', clim=None, interpolation='nearest',
-               method='auto'):
+               cmaps=['grays'], clims=None,
+               interpolation='nearest', method='auto'):
+
+    assert clims is not None, 'clim must be specified explicitly.'
+
     # Create an Image obj and unfreeze it so we can add more
     # attributes inside.
-    assert clim is not None, 'clim must be specified!'
-    scene.visuals.Image.__init__(self, parent=None, # no image input yet
-      cmap=cmap, clim=clim, interpolation=interpolation, method=method)
-    self.interactive = True
+    # First image (from image_funcs[0])
+    scene.visuals.Image.__init__(self, parent=None, # no image func yet
+      cmap=cmaps[0], clim=clims[0],
+      interpolation=interpolation, method=method)
     self.unfreeze()
+    self.interactive = True
+
+    # Other images ...
+    self.overlaid_images = [self]
+    for i_img in range(1, len(image_funcs)):
+      overlaid_image = scene.visuals.Image(parent=self,
+        cmap=cmaps[i_img], clim=clims[i_img],
+        interpolation=interpolation, method=method)
+      # overlaid_image.set_gl_state(blend=True, depth_test=True)
+      self.overlaid_images.append(overlaid_image)
 
     # Set GL state. Must check depth test, otherwise weird in 3D.
-    self.set_gl_state('translucent', depth_test=True)
+    # self.set_gl_state(depth_test=True, blend=True,
+    self.set_gl_state(blend_func=('src_alpha', 'one_minus_src_alpha'))
 
     # Determine the axis and position of this plane.
     self.axis = axis
@@ -52,8 +66,8 @@ class AxisAlignedImage(scene.visuals.Image):
     self.seismic_coord_system = seismic_coord_system
 
     # Get the image_func that returns either image or image shape.
-    self.image_func = image_func
-    shape = self.image_func(self.pos, get_shape=True)
+    self.image_funcs = image_funcs # a list of functions!
+    shape = self.image_funcs[0](self.pos, get_shape=True)
 
     # The selection highlight (a Plane visual with transparent color).
     # The plane is initialized before any rotation, on '+z' direction.
@@ -208,7 +222,12 @@ class AxisAlignedImage(scene.visuals.Image):
 
     # Update image on the slice based on current position. The numpy array
     # is transposed due to a conversion from i-j to x-y axis system.
-    self.set_data(self.image_func(self.pos).T)
+    # First image, the primary one:
+    self.set_data(self.image_funcs[0](self.pos).T)
+    # Other images, overlaid on the primary image:
+    for i_img in range(1, len(self.image_funcs)):
+      self.overlaid_images[i_img].set_data(
+        self.image_funcs[i_img](self.pos).T)
 
     # Reset attributes after dragging completes.
     self.offset = 0
