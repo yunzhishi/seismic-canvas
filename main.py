@@ -21,9 +21,6 @@ and axis legend, and can output the figure to .png file with various resolution.
 
 from seismic_canvas import (SeismicCanvas, volume_slices, XYZAxis, Colorbar)
 
-import vispy
-vispy.use(app='glfw')
-
 
 if __name__ == '__main__':
 
@@ -67,7 +64,7 @@ if __name__ == '__main__':
     # x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120)
     # x_pos=[300, 600, 900], y_pos=500, z_pos=700)
   xyz_axis = XYZAxis()
-  colorbar = Colorbar(cmap=cmap, clim=clim)
+  colorbar = Colorbar(cmap=cmap, clim=clim, label_str='1 - Planarity')
 
 
   # # Test 2: brain CT data.

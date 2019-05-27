@@ -142,13 +142,9 @@ class SeismicCanvas(scene.SceneCanvas):
         if hover_on != self.hover_on:
           if self.hover_on is not None: # de-highlight previous hover_on
             self.hover_on.highlight.visible = False
-            self.hover_on.order = 0 # -> revert the node to default order
-            self._draw_order.clear()
           self.hover_on = hover_on
           if self.hover_on is not None: # highlight the new hover_on
             self.hover_on.highlight.visible = True
-            self.hover_on.order = -1 # -> move the node to furthest back
-            self._draw_order.clear()
 
       # Reenable the ViewBox interactive flag.
       self.view.interactive = True

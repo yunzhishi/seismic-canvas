@@ -35,11 +35,11 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
   if isinstance(volumes, (tuple, list)):
     n_vol = len(volumes)
     assert isinstance(preproc_funcs, (tuple, list)) \
-      and len(preproc_funcs) == n_vol
+      and len(preproc_funcs) >= n_vol
     assert isinstance(cmaps, (tuple, list)) \
-      and len(cmaps) == n_vol
+      and len(cmaps) >= n_vol
     assert isinstance(clims, (tuple, list)) \
-      and len(clims) == n_vol \
+      and len(clims) >= n_vol \
       and len(clims[0]) == 2 or clims[0] is None
     for vol in volumes:
       assert vol.shape == volumes[0].shape

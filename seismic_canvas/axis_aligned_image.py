@@ -48,12 +48,11 @@ class AxisAlignedImage(scene.visuals.Image):
       overlaid_image = scene.visuals.Image(parent=self,
         cmap=cmaps[i_img], clim=clims[i_img],
         interpolation=interpolation, method=method)
-      # overlaid_image.set_gl_state(blend=True, depth_test=True)
       self.overlaid_images.append(overlaid_image)
 
     # Set GL state. Must check depth test, otherwise weird in 3D.
-    # self.set_gl_state(depth_test=True, blend=True,
-    self.set_gl_state(blend_func=('src_alpha', 'one_minus_src_alpha'))
+    self.set_gl_state(depth_test=True, depth_func='lequal',
+      blend_func=('src_alpha', 'one_minus_src_alpha'))
 
     # Determine the axis and position of this plane.
     self.axis = axis
@@ -78,7 +77,7 @@ class AxisAlignedImage(scene.visuals.Image):
     self.highlight.transform = STTransform(
       translate=(shape[0]/2, shape[1]/2, 0))
     # This is to make sure we can see highlight plane through the images.
-    self.highlight.set_gl_state('additive', depth_test=False)
+    self.highlight.set_gl_state('additive', depth_test=True)
     self.highlight.visible = False # only show when selected
 
     # Set the anchor point (2D local world coordinates). The mouse will
