@@ -26,21 +26,40 @@ if __name__ == '__main__':
 
   # Test 1: seismic image data.
   import numpy as np
+  # 1. F3 seismic
   # volume = np.fromfile('./F3_seismic.dat', '>f4').reshape(420, 400, 100)
   # volume = np.memmap('./F3_seismic.dat', dtype='>f4',
   #                    mode='r', shape=(420, 400, 100))
+  # 2. F3 planarity
+  # volume = np.fromfile('./F3_planarity.dat', '>f4').reshape(420, 400, 100)
+  volume = np.memmap('./F3_planarity.dat', dtype='>f4',
+                     mode='r', shape=(420, 400, 100))
+  # 3. Costa Rica seismic
   # volume = np.fromfile('./CostaRica_seismic.dat', '>f4').reshape(825, 920, 210)
-  volume = np.memmap('./CostaRica_seismic.dat', dtype='>f4',
-                     mode='r', shape=(825, 920, 210))
+  # volume = np.memmap('./CostaRica_seismic.dat', dtype='>f4',
+  #                    mode='r', shape=(825, 920, 210))
+  # 4. SEAM velocity
   # volume = np.fromfile('./SEAM_seismic.dat', np.single).reshape(1169, 1002, 751)
   # volume = np.memmap('./SEAM_seismic.dat', dtype=np.single,
   #                    mode='r', shape=(1169, 1002, 751))
 
-  cmap='grays'; clim=(-2, 2)
+  # Colormaps.
+  from vispy.color import get_colormap, Colormap
+  # cmap='grays'; clim=(-2, 2)
+  cmap=get_colormap('fire'); clim=(0.25, 1.0)
+  n_colors=128; alphas = np.linspace(0, 1, n_colors);
+  rgba = np.array([cmap.map(x) for x in alphas]); rgba[:,-1] = alphas;
+  cmap = Colormap(rgba)
   # cmap = 'viridis'; clim=(1, 5)
+  # Preprocessing function.
+  def preproc_func(array): # preprocessing for planarity
+    import numpy as np
+    return 1 - np.power(array, 8)
+  # Get visual nodes ready.
   visual_nodes = volume_slices(volume, cmap=cmap, clim=clim,
-    # x_pos=50, y_pos=50, z_pos=90)
-    x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120)
+    preproc_func=preproc_func,
+    x_pos=32, y_pos=25, z_pos=93)
+    # x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120)
     # x_pos=[300, 600, 900], y_pos=500, z_pos=700)
   xyz_axis = XYZAxis()
   colorbar = Colorbar(cmap=cmap, clim=clim)
@@ -63,13 +82,15 @@ if __name__ == '__main__':
   canvas = SeismicCanvas(visual_nodes=visual_nodes,
                          xyz_axis=xyz_axis,
                          colorbar=colorbar,
+                         axis_scales=(1, 1,
+                           0.3*max(volume.shape[:2])/volume.shape[2]),
                          # Manual camera setting below.
                          # auto_range=False,
                          # scale_factor=972.794,
                          # center=(434.46, 545.63, 10.26),
-                         # fov=45,
-                         # elevation=54.5,
-                         # azimuth=113.5
+                         fov=30,
+                         elevation=36,
+                         azimuth=45,
                          )
   # canvas.measure_fps()
   canvas.app.run()

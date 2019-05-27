@@ -34,6 +34,7 @@ class SeismicCanvas(scene.SceneCanvas):
                visual_nodes=[], xyz_axis=None, colorbar=None,
                scale_factor=None, center=None,
                fov=45, azimuth=120, elevation=30,
+               axis_scales=(1.0, 1.0, 1.0),
                auto_range=True, title='Seismic Canvas'):
     # Create a SceneCanvas obj and unfreeze it so we can add more
     # attributes inside.
@@ -53,6 +54,9 @@ class SeismicCanvas(scene.SceneCanvas):
       fov=fov, azimuth=azimuth, elevation=elevation)
     self.fov = fov; self.azimuth = azimuth; self.elevation = elevation
     self.view.camera = self.camera
+    # Individually scale up each axis.
+    # NOTE: this is kind of a cheating... not sure what issue it may bring up.
+    self.camera._flip_factors = axis_scales
 
     # Attach all main visual nodes (e.g. slices, meshs, volumes) to the ViewBox.
     for node in visual_nodes:

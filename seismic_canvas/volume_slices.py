@@ -20,6 +20,7 @@ from .axis_aligned_image import AxisAlignedImage
 
 
 def volume_slices(volume, x_pos=None, y_pos=None, z_pos=None,
+                  preproc_func=None,
                   seismic_coord_system=True,
                   cmap='grays', clim=None,
                   interpolation='nearest', method='auto'):
@@ -60,9 +61,14 @@ def volume_slices(volume, x_pos=None, y_pos=None, z_pos=None,
         elif axis == 'z': return shape[0], shape[1]
       else: # will slice the volume and return an np array image
         pos = int(np.round(pos))
-        if   axis == 'x': return volume[pos, :, :]
-        elif axis == 'y': return volume[:, pos, :]
-        elif axis == 'z': return volume[:, :, pos]
+        if preproc_func is not None:
+          if   axis == 'x': return preproc_func(volume[pos, :, :])
+          elif axis == 'y': return preproc_func(volume[:, pos, :])
+          elif axis == 'z': return preproc_func(volume[:, :, pos])
+        else:
+          if   axis == 'x': return volume[pos, :, :]
+          elif axis == 'y': return volume[:, pos, :]
+          elif axis == 'z': return volume[:, :, pos]
     return slicing_at_axis
 
   # Organize the slice positions.
