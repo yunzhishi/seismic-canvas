@@ -25,74 +25,38 @@ class Colorbar(scene.visuals.ColorBar):
   Parameters:
 
   """
-  def __init__(self, loc=(720, 380), size=(500, 10), orientation='right',
+  def __init__(self, size=(500, 10), cmap='grays', clim=None,
                label_str="Colorbar", label_color='black',
-               cmap='grays', clim=None,
+               label_size=12, tick_size=10,
                border_width=1.0, border_color='black',
                visible=True, parent=None):
     # Create a scene.visuals.ColorBar (without parent by default).
     assert clim is not None, "clim must be provided."
     scene.visuals.ColorBar.__init__(self, parent=parent,
-      pos=loc, size=size, orientation=orientation,
+      pos=(0, 0), size=size, orientation='right',
       label_str=label_str, label_color=label_color,
       cmap=cmap, clim=clim,
       border_width=border_width, border_color=border_color)
-    self.interactive = True
     self.unfreeze()
     self.visible = visible
     self.canvas_size = None # will be set when parent is linked
 
+    # Resize the label and ticks.
+    self.label.font_size = label_size
+    for tick in self.ticks:
+      tick.font_size = tick_size
+
     # TODO: add more than 2 ticks. This requires very in-depth modification.
-
-    # The selection highlight (a Rectangle visual with transparent color).
-    # The rectangle is centered on the colorbar.
-    if orientation in ["top", "bottom"]:
-        (width, height) = size
-    elif orientation in ["left", "right"]:
-        (height, width) = size
-    self.highlight = scene.visuals.Rectangle(parent=parent,
-      center=self.pos, height=height+10, width=width+10,
-      color=(1, 1, 0, 0.5)) # transparent yellow color
-    self.highlight.set_gl_state('opaque', depth_test=True)
-    self.highlight.visible = False # only show when selected
-
-    # Set the anchor point (2D screen coordinates). The mouse will
-    # drag the axis by anchor point to move around the screen.
-    self.anchor = None # None by default
-    self.offset = (0, 0)
+    # I plan to replace vispy colobar with a matplotlib rendered version.
 
     self.freeze()
 
   def on_resize(self, event):
-    # When window is resized, move the node accordingly.
-    loc = np.array(self.pos).astype(np.single)
-    loc *= (np.array(event.size).astype(np.single)
-            / np.array(self.canvas_size).astype(np.single))
-    self.pos = tuple(loc)
+    # When window is resized, only need to move the position in vertical
+    # direction, because the coordinate is relative to the secondary ViewBox
+    # that stays on the right side of the canvas.
+    pos = np.array(self.pos).astype(np.single)
+    pos[1] *= event.size[1] / self.canvas_size[1]
+    self.pos = tuple(pos)
     # Update the canvas size.
     self.canvas_size = event.size
-
-  def set_anchor(self, mouse_press_event):
-    """ Set an anchor point (2D screen coordinates) when left click
-    in the selection mode (<Ctrl> pressed). After that, the dragging called
-    in func 'drag_visual_node' will try to move around the screen and let the
-    anchor follows user's mouse position.
-    """
-    # Get click coordinates on the screen.
-    click_pos = mouse_press_event.pos
-    # Compute the anchor coordinates by subtracting the click_pos with
-    # self.pos in order to get a relative anchor position.
-    self.anchor = list(np.array(click_pos[:2]) - np.array(self.pos))
-
-  def drag_visual_node(self, mouse_move_event):
-    """ Drag this visual node while holding left click in the selection mode
-    (<Ctrl> pressed). The highlighted axis will move with the mouse (the anchor
-    point will be 'hooked' to the mouse).
-    """
-    # Compute the new axis legend center via dragging.
-    new_center = mouse_move_event.pos[:2] - self.anchor
-    # Get the offset from new_center to current axis center self.loc.
-    self.offset = new_center - self.pos
-
-    self.highlight.center = new_center # move highlighte together with axis
-    self.pos = new_center

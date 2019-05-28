@@ -18,7 +18,6 @@ from vispy.util import keys
 from vispy.gloo.util import _screenshot
 
 from .xyz_axis import XYZAxis
-from .colorbar import Colorbar
 from .axis_aligned_image import AxisAlignedImage
 
 
@@ -32,6 +31,7 @@ class SeismicCanvas(scene.SceneCanvas):
   """
   def __init__(self, size=(800, 720), bgcolor='white',
                visual_nodes=[], xyz_axis=None, colorbar=None,
+               colorbar_region_ratio=0.125,
                scale_factor=None, center=None,
                fov=45, azimuth=120, elevation=30,
                axis_scales=(1.0, 1.0, 1.0),
@@ -43,9 +43,13 @@ class SeismicCanvas(scene.SceneCanvas):
       title=title)
     self.unfreeze()
 
-    # Attach a ViewBox to this canvas and initiate the camera with the given
+    # Create a Grid widget on the canvas to host separate Viewbox (e.g., 
+    # 3D image on the left panel and colorbar to the right).
+    self.grid = self.central_widget.add_grid()
+
+    # Attach a ViewBox to a grid and initiate the camera with the given
     # parameters.
-    self.view = self.central_widget.add_view()
+    self.view = self.grid.add_view(row=0, col=0)
     if not ( auto_range or (scale_factor and center) ):
       raise ValueError("scale_factor and center cannot be None" +
                        " when auto_range=False")
@@ -62,7 +66,7 @@ class SeismicCanvas(scene.SceneCanvas):
     for node in visual_nodes:
       self.view.add(node)
 
-    # Connect the XYZAxis visual to the canvas.
+    # Connect the XYZAxis visual to the primary ViewBox.
     if xyz_axis is not None:
       # Set the parent to view, instead of view.scene, so that this legend will
       # stay at its location on the canvas, and won't rotate away.
@@ -73,14 +77,19 @@ class SeismicCanvas(scene.SceneCanvas):
       xyz_axis._update_axis()
       self.events.mouse_move.connect(xyz_axis.on_mouse_move)
 
-    # Connect the Colorbar visual to the canvas.
+    # Create a secondary ViewBox to host the Colorbar visual.
+    # Make it solid background, image from primary ViewBox shall be
+    # blocked if overlapping.
+    self.view2 = self.grid.add_view(row=0, col=1, bgcolor=self.bgcolor)
+    self.view2.width_max = colorbar_region_ratio * self.size[0]
+    self.view2.interactive = False # disable so that it won't be selectable
+    # Connect the Colorbar visual to the secondary ViewBox.
     if colorbar is not None:
-      # Set the parent to view, instead of view.scene, so that the colorbar
-      # will stay at its location on the canvas, and won't rotate away.
-      colorbar.parent = self.view
+      colorbar.parent = self.view2
+      # Pad a gap horizontally, and put the bar in the middle vertically.
+      colorbar.pos = (min(colorbar.size), self.size[1]/2)
       colorbar.canvas_size = self.size
       self.events.resize.connect(colorbar.on_resize)
-      colorbar.highlight.parent = self.view
 
     # Manage the selected visual node.
     self.drag_mode = False
@@ -203,12 +212,10 @@ class SeismicCanvas(scene.SceneCanvas):
           pos_dict[node.axis].append(pos)
       for axis, pos in pos_dict.items():
         print(" - {}: {}".format(axis, pos))
-      # Collect axis legend and colorbar parameters.
+      # Collect the axis legend parameters.
       for node in self.view.children:
         if type(node) == XYZAxis:
           print("XYZAxis loc = {}".format(node.loc))
-        if type(node) == Colorbar:
-          print("Colorbar loc = {}".format(node.pos))
 
   def on_key_release(self, event):
     # Cancel selection and highlight if release <Ctrl>.

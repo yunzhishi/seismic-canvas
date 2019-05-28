@@ -53,8 +53,8 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
   slices_list = []
   # z-axis down seismic coordinate system, or z-axis up normal system.
   if seismic_coord_system:
-    for vol in volumes:
-      vol = vol[:, ::-1, ::-1]
+    for i_vol in range(n_vol):
+      volumes[i_vol] = volumes[i_vol][:, ::-1, ::-1]
   shape = volumes[0].shape
 
   # Automatically set clim (cmap range) if not specified.
