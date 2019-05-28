@@ -34,8 +34,11 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
   # Check whether single volume or multiple volumes are provided.
   if isinstance(volumes, (tuple, list)):
     n_vol = len(volumes)
-    assert isinstance(preproc_funcs, (tuple, list)) \
-      and len(preproc_funcs) >= n_vol
+    if preproc_funcs is None:
+      preproc_funcs = [None] * n_vol # repeat n times ...
+    else:
+      assert isinstance(preproc_funcs, (tuple, list)) \
+        and len(preproc_funcs) >= n_vol
     assert isinstance(cmaps, (tuple, list)) \
       and len(cmaps) >= n_vol
     assert isinstance(clims, (tuple, list)) \
