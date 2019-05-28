@@ -67,7 +67,7 @@ def volume_slices(volumes, x_pos=None, y_pos=None, z_pos=None,
         warn("cmap='auto' with np.memmap can significantly impact launching " +
              "time, cmap=(cmin, cmax) is recommended.",
              UserWarning, stacklevel=2)
-      clim = (vol.min(), vol.max())
+      clims[i_vol] = (vol.min(), vol.max())
 
   # Function that returns the limitation of slice movement.
   def limit(axis):

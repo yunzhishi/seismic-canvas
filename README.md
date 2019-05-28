@@ -55,4 +55,4 @@ pip install PyQt5
 Demo
 ----
 
-See [`main.py`](./main.py) for a simple demo. You can download the data from this research: [xinwucwp/osv](https://github.com/xinwucwp/osv).
+See [`simple_demo.py`](./simple_demo.py) for a simple demo. You can download the data from this research: [xinwucwp/osv](https://github.com/xinwucwp/osv).
