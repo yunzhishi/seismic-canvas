@@ -166,7 +166,7 @@ if __name__ == '__main__':
                       label_color='white') # dark background
 
   dark_canvas_params = canvas_params
-  dark_canvas_params['bgcolor'] = (.2, .2, .2, 1) # dark background
+  dark_canvas_params['bgcolor'] = (.1, .1, .1, 1) # dark background
   canvas5 = SeismicCanvas(title='Fault Likelihood',
                           visual_nodes=visual_nodes,
                           xyz_axis=xyz_axis,

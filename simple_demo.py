@@ -26,43 +26,45 @@ from seismic_canvas import (SeismicCanvas, volume_slices, XYZAxis, Colorbar)
 
 if __name__ == '__main__':
 
-  # Test 1: seismic image data.
-  # 1. F3 seismic
-  # volume = np.fromfile('./F3_seismic.dat', '>f4').reshape(420, 400, 100)
-  # volume = np.memmap('./F3_seismic.dat', dtype='>f4',
-  #                  mode='r', shape=(420, 400, 100))
-  # 2. Costa Rica seismic
-  # volume = np.fromfile('./CostaRica_seismic.dat', '>f4').reshape(825, 920, 210)
-  volume = np.memmap('./CostaRica_seismic.dat', dtype='>f4',
-                     mode='r', shape=(825, 920, 210))
-  axis_scales = (1, 1, 1.5) # anisotropic axes (stretch z-axis)
+  # # Test 1: seismic image data.
+  # # 1. F3 seismic
+  # # volume = np.fromfile('./F3_seismic.dat', '>f4').reshape(420, 400, 100)
+  # # volume = np.memmap('./F3_seismic.dat', dtype='>f4',
+  # #                  mode='r', shape=(420, 400, 100))
+  # # 2. Costa Rica seismic
+  # # volume = np.fromfile('./CostaRica_seismic.dat', '>f4').reshape(825, 920, 210)
+  # volume = np.memmap('./CostaRica_seismic.dat', dtype='>f4',
+  #                    mode='r', shape=(825, 920, 210))
+  # axis_scales = (1, 1, 1.5) # anisotropic axes (stretch z-axis)
 
-  # Colormaps.
-  cmap='grays'; clim=(-2, 2)
-  # Get visual nodes ready.
-  visual_nodes = volume_slices(volume,
-    cmaps=cmap, clims=clim,
-    # x_pos=32, y_pos=25, z_pos=93)
-    x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120)
-  xyz_axis = XYZAxis()
-  colorbar = Colorbar(cmap=cmap, clim=clim, label_str='Seismic Amplitude')
-
-
-  # # Test 2: brain CT data.
-  # from vispy import io
-  # volume = np.load(io.load_data_file('brain/mri.npz'))['data']
-  # volume = volume.transpose(2, 0, 1)[:, :, ::-1]
-  # axis_scales = (1, 1, 1) # isotropoic axes
-
+  # # Colormaps.
+  # cmap='grays'; clim=(-2, 2)
+  # # Get visual nodes ready.
   # visual_nodes = volume_slices(volume,
-  #   x_pos=100, y_pos=128, z_pos=30,
-  #   seismic_coord_system=False)
-  # xyz_axis = XYZAxis(seismic_coord_system=False)
-  # colorbar = Colorbar(cmap='grays', clim=(volume.min(), volume.max()))
+  #   cmaps=cmap, clims=clim,
+  #   # x_pos=32, y_pos=25, z_pos=93)
+  #   x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120)
+  # xyz_axis = XYZAxis()
+  # colorbar = Colorbar(cmap=cmap, clim=clim, label_str='Seismic Amplitude')
+
+
+  # Test 2: brain CT data.
+  from vispy import io
+  volume = np.load(io.load_data_file('brain/mri.npz'))['data']
+  volume = volume.transpose(2, 0, 1)[:, :, ::-1]
+  axis_scales = (1, 1, 1) # isotropoic axes
+
+  visual_nodes = volume_slices(volume,
+    x_pos=100, y_pos=128, z_pos=30,
+    seismic_coord_system=False)
+  xyz_axis = XYZAxis(seismic_coord_system=False)
+  colorbar = Colorbar(cmap='grays', clim=(volume.min(), volume.max()),
+                      label_str='Amplitude')
 
 
   # Run the canvas.
-  canvas = SeismicCanvas(visual_nodes=visual_nodes,
+  canvas = SeismicCanvas(title='Simple Demo',
+                         visual_nodes=visual_nodes,
                          xyz_axis=xyz_axis,
                          colorbar=colorbar,
                          # Set the option below=0 will hide the colorbar region
