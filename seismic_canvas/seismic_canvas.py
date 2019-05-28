@@ -40,7 +40,7 @@ class SeismicCanvas(scene.SceneCanvas):
     # Create a SceneCanvas obj and unfreeze it so we can add more
     # attributes inside.
     scene.SceneCanvas.__init__(self, title=title,
-      self, keys='interactive', size=size, bgcolor=bgcolor)
+      keys='interactive', size=size, bgcolor=bgcolor)
     self.unfreeze()
 
     # Create a Grid widget on the canvas to host separate Viewbox (e.g., 
