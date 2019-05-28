@@ -77,7 +77,7 @@ if __name__ == '__main__':
                          fov=30,
                          elevation=36,
                          azimuth=45,
+                         zoom_factor=2.2 # >1: zoom in; <1: zoom out
                          )
-  canvas.camera.scale_factor /= 1.2 # >1: zoom in; <1: zoom out
   canvas.measure_fps()
   canvas.app.run()

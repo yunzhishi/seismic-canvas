@@ -34,13 +34,13 @@ class SeismicCanvas(scene.SceneCanvas):
                colorbar_region_ratio=0.125,
                scale_factor=None, center=None,
                fov=45, azimuth=120, elevation=30,
+               zoom_factor=1.2,
                axis_scales=(1.0, 1.0, 1.0),
                auto_range=True, title='Seismic Canvas'):
     # Create a SceneCanvas obj and unfreeze it so we can add more
     # attributes inside.
-    scene.SceneCanvas.__init__(
-      self, keys='interactive', size=size, bgcolor=bgcolor,
-      title=title)
+    scene.SceneCanvas.__init__(self, title=title,
+      self, keys='interactive', size=size, bgcolor=bgcolor)
     self.unfreeze()
 
     # Create a Grid widget on the canvas to host separate Viewbox (e.g., 
@@ -98,6 +98,11 @@ class SeismicCanvas(scene.SceneCanvas):
 
     # Automatically set the range of the canvas, display, and wrap up.
     if auto_range: self.camera.set_range()
+    # Record the scale factor for a consistent camera reset.
+    self.scale_factor = self.camera.scale_factor
+    # Zoom in or out after auto range setting.
+    self.zoom_factor = zoom_factor
+    self.camera.scale_factor /= self.zoom_factor
     self.show()
     self.freeze()
 
@@ -173,6 +178,8 @@ class SeismicCanvas(scene.SceneCanvas):
       self.camera.azimuth = self.azimuth
       self.camera.elevation = self.elevation
       self.camera.set_range()
+      self.camera.scale_factor = self.scale_factor
+      self.camera.scale_factor /= self.zoom_factor
       for child in self.view.children:
         if type(child) == XYZAxis:
           child._update_axis()
@@ -201,6 +208,7 @@ class SeismicCanvas(scene.SceneCanvas):
       camera_state = self.camera.get_state()
       for key, value in camera_state.items():
         print(" - {} = {}".format(key, value))
+      print(" - {} = {}".format('zoom factor', self.zoom_factor))
       # Collect slice parameters.
       print("Slices:")
       pos_dict = {'x':[], 'y':[], 'z':[]}

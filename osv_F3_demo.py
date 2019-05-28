@@ -31,9 +31,9 @@ if __name__ == '__main__':
   canvas_params = {'size': (1400, 1000),
                    'axis_scales': (1, 1, 1.5), # stretch z-axis
                    'colorbar_region_ratio': 0.1,
-                   'fov': 30, 'elevation': 45, 'azimuth': 45}
+                   'fov': 30, 'elevation': 45, 'azimuth': 45,
+                   'zoom_factor': 1.6}
   colorbar_size = (800, 20)
-  zoom_factor = 1 / 1.6
 
 
   # Image 1: seismic overlaid by planarity attribute.
@@ -63,7 +63,6 @@ if __name__ == '__main__':
                           xyz_axis=xyz_axis,
                           colorbar=colorbar,
                           **canvas_params)
-  canvas1.camera.scale_factor *= zoom_factor
 
 
   # Image 2: seismic overlaid by fault semblance.
@@ -91,7 +90,6 @@ if __name__ == '__main__':
                           xyz_axis=xyz_axis,
                           colorbar=colorbar,
                           **canvas_params)
-  canvas2.camera.scale_factor *= zoom_factor
 
 
   # Image 3: thined fault strike angle.
@@ -113,7 +111,6 @@ if __name__ == '__main__':
                           xyz_axis=xyz_axis,
                           colorbar=colorbar,
                           **canvas_params)
-  canvas3.camera.scale_factor *= zoom_factor
 
 
   # Image 4: seismic overlaid by fault surface voting scores.
@@ -141,7 +138,6 @@ if __name__ == '__main__':
                           xyz_axis=xyz_axis,
                           colorbar=colorbar,
                           **canvas_params)
-  canvas4.camera.scale_factor *= zoom_factor
 
 
   # Image 5: seismic overlaid by fault likelihood.
@@ -172,7 +168,6 @@ if __name__ == '__main__':
                           xyz_axis=xyz_axis,
                           colorbar=colorbar,
                           **dark_canvas_params)
-  canvas5.camera.scale_factor *= zoom_factor
 
 
   # Show all images.
