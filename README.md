@@ -1,4 +1,4 @@
-Seismic Canvas: interactive 3D seismic visualization tool
+# Seismic Canvas: interactive 3D seismic visualization tool
 -----------------------------------------------------
 
 Seismic Canvas is an interactive 3D visualization tool mainly designed for seismic data, at the same time also can be useful for any 3D data.
@@ -74,3 +74,8 @@ Using triangle mesh surfaces to visualize `FaultSkin`s.
 <img src='./imgs/Fault Surfaces.png' alt='Fault Surfaces' width=640/>
 A dark themed example with a z-axis-up axis legend:
 <img src='./imgs/Fault Likelihood.png' alt='Fault Likelihood' width=640/>
+
+To-Do List
+-------
+- [ ] Replace current colorbar with Matplotlib rendered colorbar
+- [ ] Draw lines where slice planes intersect
