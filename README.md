@@ -1,5 +1,4 @@
 # Seismic Canvas: interactive 3D seismic visualization tool
------------------------------------------------------
 
 Seismic Canvas is an interactive 3D visualization tool mainly designed for seismic data, at the same time also can be useful for any 3D data.
 This tool is based on [VisPy](https://github.com/vispy/vispy), a Python library that leverages the computational power of GPUs through the **OpenGL** library.
