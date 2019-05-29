@@ -76,5 +76,6 @@ A dark themed example with a z-axis-up axis legend:
 
 To-Do List
 -------
+- [ ] Well log visualization
 - [ ] Replace current colorbar with Matplotlib rendered colorbar
 - [ ] Draw lines where slice planes intersect
