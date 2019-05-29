@@ -17,11 +17,14 @@
 'Optimal Surface Voting': https://github.com/xinwucwp/osv.
 """
 
+import os
 import numpy as np
 from vispy import app
-from vispy.color import get_colormap, Colormap
+from vispy.color import get_colormap, Colormap, Color
+from vispy.scene.visuals import Mesh
 
 from seismic_canvas import (SeismicCanvas, volume_slices, XYZAxis, Colorbar)
+from osv_read_skin import FaultSkin
 
 
 if __name__ == '__main__':
@@ -92,15 +95,23 @@ if __name__ == '__main__':
                           **canvas_params)
 
 
-  # Image 3: thined fault strike angle.
+  # Image 3: fault strike angle.
   strike_vol = np.memmap('./F3_strike.dat', dtype='>f4',
                          mode='r', shape=volume_shape)
 
   strike_cmap = 'hsl'
-  strike_range = (0, 360)
+  strike_range = (0, 180)
+
+  # Use preprocess function to warp strike angles in range 0 ~ 180 degrees.
+  def strike_warp(strike):
+    warped = strike.copy()
+    warp_index = np.where(strike > 180)
+    warped[warp_index] = 180 - warped[warp_index]
+    return warped
 
   visual_nodes = volume_slices(strike_vol,
     cmaps=strike_cmap, clims=strike_range,
+    preproc_funcs=strike_warp,
     interpolation='bilinear', **slicing)
   xyz_axis = XYZAxis()
   colorbar = Colorbar(cmap=strike_cmap, clim=strike_range,
@@ -140,7 +151,53 @@ if __name__ == '__main__':
                           **canvas_params)
 
 
-  # Image 5: seismic overlaid by fault likelihood.
+  # Image 5: seismic with fault skin surfaces (meshes).
+  fault_surfaces = []
+  fault_cmap = 'hsl'
+  fault_range = (0, 180)
+
+  # Read from skin files using FaultSkin class.
+  skin_dir = './F3_fault_skins'
+  for filename in os.listdir(skin_dir):
+    if filename.startswith('skin') and filename.endswith('.dat'):
+      skin = FaultSkin(os.path.join(skin_dir, filename))
+      verts, faces = skin.get_vertices_and_faces()
+      # Convert to seismic coord system.
+      verts[:, 1] = volume_shape[1] - verts[:, 1]
+      verts[:, 2] = volume_shape[2] - verts[:, 2]
+
+      strikes = np.zeros(verts.shape[0])
+      for i, cell in enumerate(skin.cells):
+        strike = cell.strike
+        if strike > 180: strike = 360 - strike
+        strikes[i] = strike
+
+      fault_surface = Mesh(verts, faces,
+        vertex_values=strikes, shading='smooth')
+      fault_surface.cmap = fault_cmap
+      fault_surface.clim = fault_range
+      fault_surface.shininess = 0.01
+      fault_surface.ambient_light_color = Color([.2, .2, .2, 1])
+      fault_surface.light_dir = (5, -10, 5)
+      fault_surfaces.append(fault_surface)
+
+  visual_nodes = volume_slices(seismic_vol,
+    cmaps=seismic_cmap,
+    clims=seismic_range,
+    interpolation='bilinear', **slicing)
+  xyz_axis = XYZAxis()
+  colorbar = Colorbar(cmap=fault_cmap, clim=fault_range,
+                      label_str='Fault Strike Angle', size=colorbar_size)
+
+  visual_nodes += fault_surfaces
+  canvas5 = SeismicCanvas(title='Fault Surfaces',
+                          visual_nodes=visual_nodes,
+                          xyz_axis=xyz_axis,
+                          colorbar=colorbar,
+                          **canvas_params)
+
+
+  # Image 6: seismic overlaid by fault likelihood.
   likelihood_vol = np.memmap('./F3_likelihood.dat', dtype='>f4',
                              mode='r', shape=volume_shape)
 
@@ -163,7 +220,7 @@ if __name__ == '__main__':
 
   dark_canvas_params = canvas_params
   dark_canvas_params['bgcolor'] = (.1, .1, .1, 1) # dark background
-  canvas5 = SeismicCanvas(title='Fault Likelihood',
+  canvas6 = SeismicCanvas(title='Fault Likelihood',
                           visual_nodes=visual_nodes,
                           xyz_axis=xyz_axis,
                           colorbar=colorbar,

@@ -17,17 +17,18 @@
 Surface Voting': https://github.com/xinwucwp/osv.
 """
 
+from struct import unpack, calcsize
 import numpy as np
 
 
 class FaultCell(object):
   """ A class that contains fault attribute on each fault pixel,
   including pos (x,y,z), likelihood, strike and dip angle,
-  slip vector(s1,s2,s3).
-  Each object also can include its neighboring cell index, (above,
-  below, left, right).
+  slip vector(sx,sy,sz).
+  Each object also can include its neighboring cell, (above, below,
+  left, right).
   """
-  def __init__(self, pos=(0,0,0), likelihood=0.,
+  def __init__(self, index, pos=(0,0,0), likelihood=0.,
                strike=0., dip=0., slip=(0.,0.,0.)):
     self.pos = pos
     self.likelihood = likelihood
@@ -35,11 +36,35 @@ class FaultCell(object):
     self.dip = dip
     self.slip = slip
 
-    # The index of neighboring cells.
+    # The index in the cell list of a skin.
+    self.index = index
+
+    # The neighboring cells.
     self.above = None
     self.below = None
     self.left = None
     self.right = None
+
+  def smooth_strike(self):
+    """ Smooth the strike angle value using neighboring cells.
+    """
+    L = self.left; R = self.right
+    L_strike = 0.; R_strike = 0.
+    scs = 0. # not sure what it means ...
+    if L is not None:
+      dy = self.pos[1] - L.pos[1]
+      dx = self.pos[0] - L.pos[0]
+      ds = np.sqrt(dy**2 + dx**2)
+      L_strike = np.degrees(np.arccos(dx / ds))
+      scs += 1
+    if R is not None:
+      dy = -self.pos[1] + R.pos[1]
+      dx = -self.pos[0] + R.pos[0]
+      ds = np.sqrt(dy**2 + dx**2)
+      R_strike = np.degrees(np.arccos(dx / ds))
+      scs += 1
+    if scs > 0:
+      self.strike = (L_strike + R_strike) / scs
 
 
 class FaultSkin(object):
@@ -52,36 +77,51 @@ class FaultSkin(object):
   def __init__(self, filename):
     self.f = open(filename, 'br')
 
-    num_cells = self._read_int()
+    num_cells = unpack('>i', self.f.read(calcsize('>i')))[0]
+
+    # Read all cell parameters in chunk.
+    fmt = '>{:d}f'.format(9 * num_cells) # 9 floats per cell
+    cell_params = unpack(fmt, self.f.read(calcsize(fmt)))
+
     # Build a list of all cells included.
     self.cells = []
     for i in range(num_cells):
-      pos = (self._read_float(), self._read_float(), self._read_float())
-      likelihood = self._read_float()
-      strike = self._read_float()
-      dip = self._read_float()
-      slip = (self._read_float(), self._read_float(), self._read_float())
+      param = cell_params[9*i: 9*(i+1)]
+      pos = (param[2], param[1], param[0]) # reverse the zyx order to xyz
+      likelihood = param[3]
+      strike = param[4]
+      dip = param[5]
+      slip = (param[8], param[7], param[6]) # reverse the zyx order to xyz
 
-      cell = FaultCell(pos=pos, likelihood=likelihood,
+      cell = FaultCell(i, pos=pos, likelihood=likelihood,
                        strike=strike, dip=dip, slip=slip)
       self.cells.append(cell)
 
+    # Read cell neighbor indexes in chunk.
+    fmt = '>{:d}i'.format(4 * num_cells) # 4 neighbor indexes per cell
+    cell_neighbors = unpack(fmt, self.f.read(calcsize(fmt)))
+
     # Get the neighboring cell index for each cell.
     for i in range(num_cells):
-      above = self._read_int()
-      if above<0: above = None
-      below = self._read_int()
-      if below<0: below = None
-      left = self._read_int()
-      if left<0: left = None
-      right = self._read_int()
-      if right<0: right = None
-      self.cells[i].above = above
-      self.cells[i].below = below
-      self.cells[i].left = left
-      self.cells[i].right = right
+      neighbor = cell_neighbors[4*i: 4*(i+1)]
+      # Neighbor above current cell.
+      if neighbor[0] < 0: self.cells[i].above = None
+      else: self.cells[i].above = self.cells[neighbor[0]]
+      # Neighbor below current cell.
+      if neighbor[1] < 0: self.cells[i].below = None
+      else: self.cells[i].below = self.cells[neighbor[1]]
+      # Neighbor to the left of current cell.
+      if neighbor[2] < 0: self.cells[i].left = None
+      else: self.cells[i].left = self.cells[neighbor[2]]
+      # Neighbor to the right of current cell.
+      if neighbor[3] < 0: self.cells[i].right = None
+      else: self.cells[i].right = self.cells[neighbor[3]]
 
     self.f.close()
+
+    # Smooth the strike angle on the skin.
+    for cell in self.cells:
+      cell.smooth_strike()
 
   def get_vertices_and_faces(self):
     """ Get an array of vertices corresponding to an indexed triangle mesh.
@@ -96,22 +136,22 @@ class FaultSkin(object):
     faces = []
     for i, cell in enumerate(self.cells):
       # Get the FaultCell to the right of current cell.
-      if cell.right is not None: R = self.cells[cell.right]
-      else: R = None
+      R = cell.right
+      if R is not None: RB = R.below
       # Get the FaultCell below the current cell.
-      if cell.below is not None: B = self.cells[cell.below]
-      else: B = None
+      B = cell.below
+      if B is not None: BR = B.right
 
       # First triangle: 0 - 2
       #                   \ |
       #                     1, facing outwards.
-      if R is not None and R.below is not None:
-        faces.append([i, R.below, cell.right])
+      if R and RB:
+        faces.append([i, RB.index, R.index])
       # Second triangle: 0
       #                  | \
       #                  1 - 2, also facing outwards.
-      if B is not None and B.right is not None:
-        faces.append([i, cell.below, B.right])
+      if B and BR:
+        faces.append([i, B.index, BR.index])
     faces = np.array(faces).astype(int)
 
     return vertices, faces
