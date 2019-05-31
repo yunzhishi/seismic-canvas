@@ -21,7 +21,7 @@ import os
 import numpy as np
 from vispy import app
 from vispy.color import get_colormap, Colormap, Color
-from vispy.scene.visuals import Mesh
+from vispy.scene.visuals import Mesh, Markers
 
 from seismic_canvas import (SeismicCanvas, volume_slices, XYZAxis, Colorbar)
 from osv_read_skin import FaultSkin
@@ -143,6 +143,26 @@ if __name__ == '__main__':
   xyz_axis = XYZAxis()
   colorbar = Colorbar(cmap=voting_cmap, clim=voting_range,
                       label_str='Voting Scores', size=colorbar_size)
+
+  # Test well log visualization!
+  n_log_samples = 500
+  # Get X coordinates by Random walking.
+  well_x = 200 * np.ones(n_log_samples)
+  delta_x = 0.3 * np.random.randn(n_log_samples)
+  well_x += np.cumsum(delta_x)
+  # Get Y and Z coordinates.
+  well_y = 100 * np.ones(n_log_samples)
+  well_z = np.linspace(0, 80, n_log_samples)
+  # Concate X, Y, and Z coordinates.
+  well_log_coords = np.stack((well_x, well_y, well_z), axis=1)
+  # Get well log colors.
+  cmap = get_colormap('hsl')
+  values = np.random.uniform(-1.5, 2.5, n_log_samples)
+  values = np.convolve(values, np.ones((20,))/20, mode='same')
+  well_log_colors = np.array([cmap.map(x) for x in values]).squeeze()
+  well_log = Markers(pos=well_log_coords, symbol='hbar', size=15,
+    face_color=well_log_colors, edge_width=0)
+  visual_nodes.append(well_log)
 
   canvas4 = SeismicCanvas(title='Voting Scores',
                           visual_nodes=visual_nodes,
