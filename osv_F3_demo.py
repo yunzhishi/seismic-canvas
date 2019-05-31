@@ -158,6 +158,9 @@ if __name__ == '__main__':
 
   # Read from skin files using FaultSkin class.
   skin_dir = './F3_fault_skins'
+  all_verts = None
+  all_faces = None
+  all_strikes = None
   for filename in os.listdir(skin_dir):
     if filename.startswith('skin') and filename.endswith('.dat'):
       skin = FaultSkin(os.path.join(skin_dir, filename))
@@ -172,14 +175,24 @@ if __name__ == '__main__':
         if strike > 180: strike = 360 - strike
         strikes[i] = strike
 
-      fault_surface = Mesh(verts, faces,
-        vertex_values=strikes, shading='smooth')
-      fault_surface.cmap = fault_cmap
-      fault_surface.clim = fault_range
-      fault_surface.shininess = 0.01
-      fault_surface.ambient_light_color = Color([.2, .2, .2, 1])
-      fault_surface.light_dir = (5, -10, 5)
-      fault_surfaces.append(fault_surface)
+      # Append to all collected verts/faces/values.
+      if all_verts is None:
+        all_verts = verts
+        all_faces = faces
+        all_strikes = strikes
+      else:
+        faces += all_verts.shape[0]
+        all_verts = np.concatenate((all_verts, verts))
+        all_faces = np.concatenate((all_faces, faces))
+        all_strikes = np.concatenate((all_strikes, strikes))
+
+  fault_surface = Mesh(all_verts, all_faces,
+    vertex_values=all_strikes, shading='smooth')
+  fault_surface.cmap = fault_cmap
+  fault_surface.clim = fault_range
+  fault_surface.shininess = 0.01
+  fault_surface.ambient_light_color = Color([.2, .2, .2, 1])
+  fault_surface.light_dir = (5, -10, 5)
 
   visual_nodes = volume_slices(seismic_vol,
     cmaps=seismic_cmap,
@@ -189,7 +202,7 @@ if __name__ == '__main__':
   colorbar = Colorbar(cmap=fault_cmap, clim=fault_range,
                       label_str='Fault Strike Angle', size=colorbar_size)
 
-  visual_nodes += fault_surfaces
+  visual_nodes.append(fault_surface)
   canvas5 = SeismicCanvas(title='Fault Surfaces',
                           visual_nodes=visual_nodes,
                           xyz_axis=xyz_axis,
