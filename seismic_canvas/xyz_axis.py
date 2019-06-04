@@ -58,7 +58,6 @@ class XYZAxis(scene.visuals.XYZAxis):
     # the legend to specified location and scale up to desired size.
     # The location is computed from the top-left corner.
     self.transform = MatrixTransform()
-    self._update_axis()
 
     self.freeze()
 

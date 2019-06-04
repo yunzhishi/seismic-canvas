@@ -17,4 +17,11 @@ from .seismic_canvas import SeismicCanvas
 from .axis_aligned_image import AxisAlignedImage
 from .volume_slices import volume_slices
 from .xyz_axis import XYZAxis
-from .colorbar import Colorbar
+
+try:
+  import matplotlib
+  # Only import the MPL generated colorbar if MPL is available.
+  from .colorbar_MPL import Colorbar
+except ImportError:
+  # Use vispy stock colorbar if MPL is not available.
+  from .colorbar import Colorbar

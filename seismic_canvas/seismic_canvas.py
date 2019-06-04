@@ -87,7 +87,7 @@ class SeismicCanvas(scene.SceneCanvas):
     if colorbar is not None:
       colorbar.parent = self.view2
       # Pad a gap horizontally, and put the bar in the middle vertically.
-      colorbar.pos = (min(colorbar.size), self.size[1]/2)
+      colorbar.pos = (min(colorbar.bar_size), self.size[1]/2)
       colorbar.canvas_size = self.size
       self.events.resize.connect(colorbar.on_resize)
 

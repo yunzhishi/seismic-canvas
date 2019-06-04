@@ -19,8 +19,8 @@ from vispy.visuals import TextVisual
 
 
 class Colorbar(scene.visuals.ColorBar):
-  """ A colorbar visual that add some interactivity fixes to be used
-  in 3D. It rotates correctly, and can be dragged around.
+  """ A colorbar visual fixed to the right side of the canvas. This is
+  based on vispy stock ColorBar visual.
 
   Parameters:
 
@@ -30,8 +30,10 @@ class Colorbar(scene.visuals.ColorBar):
                label_size=12, tick_size=10,
                border_width=1.0, border_color='black',
                visible=True, parent=None):
+
+    assert clim is not None, 'clim must be specified explicitly.'
+
     # Create a scene.visuals.ColorBar (without parent by default).
-    assert clim is not None, "clim must be provided."
     scene.visuals.ColorBar.__init__(self, parent=parent,
       pos=(0, 0), size=size, orientation='right',
       label_str=label_str, label_color=label_color,
@@ -40,6 +42,9 @@ class Colorbar(scene.visuals.ColorBar):
     self.unfreeze()
     self.visible = visible
     self.canvas_size = None # will be set when parent is linked
+
+    # This is just for compatibility.
+    self.bar_size = self.size
 
     # Resize the label and ticks.
     self.label.font_size = label_size
@@ -52,9 +57,10 @@ class Colorbar(scene.visuals.ColorBar):
     self.freeze()
 
   def on_resize(self, event):
-    # When window is resized, only need to move the position in vertical
-    # direction, because the coordinate is relative to the secondary ViewBox
-    # that stays on the right side of the canvas.
+    """ When window is resized, only need to move the position in vertical
+    direction, because the coordinate is relative to the secondary ViewBox
+    that stays on the right side of the canvas.
+    """
     pos = np.array(self.pos).astype(np.single)
     pos[1] *= event.size[1] / self.canvas_size[1]
     self.pos = tuple(pos)
