@@ -50,10 +50,15 @@ You can install them through
 pip install numpy vispy
 ```
 
-The **vispy** library also depends on one of these backends to display a window on your OS: PyQt4/PySide, PyQt5/PySide2, glfw, pyglet, SDL, or wx.
-We recommend PyQt5 as it is the easiest to install and most compatible on different platforms.
+The vispy library also depends on one of these backends to display a window on your OS: PyQt4/PySide, PyQt5/PySide2, glfw, pyglet, SDL, or wx.
+We recommend **PyQt5** as it is the easiest to install and most compatible on different platforms.
 ```
 pip install PyQt5
+```
+
+It is also recommended to install **PyOpenGL** and **matplotlib**; they are optinal libraries that can enhance the visualization in various ways. For example, **PyOpenGL** allows for nice antialiased 3D line objects, and **matplotlib** helps render a much more useful colorbar than the vispy stock colorbar object.
+```
+pip install PyOpenGL matplotlib
 ```
 
 Demo
@@ -68,6 +73,7 @@ Also try [`osv_F3_demo.py`](./osv_F3_demo.py) to check out the results from this
 <img src='./imgs/Planarity.png' alt='Planarity' width=640/>
 <img src='./imgs/Fault Semblance.png' alt='Fault Semblance' width=640/>
 <img src='./imgs/Fault Strike Angle.png' alt='Fault Strike Angle' width=640/>
+Using 2D markers to visualize a randomly generated well logs.
 <img src='./imgs/Voting Scores.png' alt='Voting Scores' width=640/>
 Using triangle mesh surfaces to visualize `FaultSkin`s.
 <img src='./imgs/Fault Surfaces.png' alt='Fault Surfaces' width=640/>
@@ -76,6 +82,6 @@ A dark themed example with a z-axis-up axis legend:
 
 To-Do List
 -------
-- [ ] Well log visualization
-- [ ] Replace current colorbar with Matplotlib rendered colorbar
+- [x] Well log visualization
+- [x] Replace current colorbar with Matplotlib rendered colorbar
 - [ ] Draw lines where slice planes intersect

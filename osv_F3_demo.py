@@ -162,6 +162,7 @@ if __name__ == '__main__':
   well_log_colors = np.array([cmap.map(x) for x in values]).squeeze()
   well_log = Markers(pos=well_log_coords, symbol='hbar', size=15,
     face_color=well_log_colors, edge_width=0)
+  well_log.set_gl_state(depth_test=False)
   visual_nodes.append(well_log)
 
   canvas4 = SeismicCanvas(title='Voting Scores',
