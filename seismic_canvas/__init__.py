@@ -19,9 +19,12 @@ from .volume_slices import volume_slices
 from .xyz_axis import XYZAxis
 
 try:
-  import matplotlib
+  # Check Python module dependencies.
+  import matplotlib.pyplot
   # Only import the MPL generated colorbar if MPL is available.
   from .colorbar_MPL import Colorbar
 except ImportError:
+  from warnings import warn
+  warn("Module matplotlib/tkinter missing, using vispy stock colorbar")
   # Use vispy stock colorbar if MPL is not available.
   from .colorbar import Colorbar

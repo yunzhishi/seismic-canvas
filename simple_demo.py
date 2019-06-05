@@ -45,7 +45,8 @@ if __name__ == '__main__':
   #   # x_pos=32, y_pos=25, z_pos=93)
   #   x_pos=[370, 170, 570, 770], y_pos=810, z_pos=120)
   # xyz_axis = XYZAxis()
-  # colorbar = Colorbar(cmap=cmap, clim=clim, label_str='Seismic Amplitude')
+  # colorbar = Colorbar(cmap=cmap, clim=clim, label_str='Seismic Amplitude',
+  #                     label_size=8, tick_size=6)
 
 
   # Test 2: brain CT data.
@@ -59,7 +60,7 @@ if __name__ == '__main__':
     seismic_coord_system=False)
   xyz_axis = XYZAxis(seismic_coord_system=False)
   colorbar = Colorbar(cmap='grays', clim=(volume.min(), volume.max()),
-                      label_str='Amplitude')
+                      label_str='Amplitude', label_size=8, tick_size=6)
 
 
   # Run the canvas.
@@ -77,7 +78,7 @@ if __name__ == '__main__':
                          fov=30,
                          elevation=36,
                          azimuth=45,
-                         zoom_factor=2.2 # >1: zoom in; <1: zoom out
+                         zoom_factor=1.2 # >1: zoom in; <1: zoom out
                          )
   canvas.measure_fps()
   canvas.app.run()

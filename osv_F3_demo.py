@@ -249,7 +249,8 @@ if __name__ == '__main__':
   xyz_axis = XYZAxis(seismic_coord_system=False) # try normal coord system
   colorbar = Colorbar(cmap=likelihood_cmap, clim=likelihood_range,
                       label_str='Fault Likelihood', size=colorbar_size,
-                      label_color='white') # dark background
+                      label_color='white', border_color='white'
+                      ) # dark background
 
   dark_canvas_params = canvas_params
   dark_canvas_params['bgcolor'] = (.1, .1, .1, 1) # dark background

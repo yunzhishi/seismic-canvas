@@ -44,7 +44,7 @@ class Colorbar(scene.visuals.Image):
 
     # Create a scene.visuals.Image (without parent by default).
     scene.visuals.Image.__init__(self, parent=None,
-      interpolation='bilinear', method='auto')
+      interpolation='nearest', method='auto')
     self.unfreeze()
     self.visible = visible
     self.canvas_size = None # will be set when parent is linked
@@ -80,9 +80,12 @@ class Colorbar(scene.visuals.Image):
     pos[1] *= event.size[1] / self.canvas_size[1]
     self.pos = tuple(pos)
 
-    # Move the colorbar to specified position (with half-size padding).
+    # Move the colorbar to specified position (with half-size padding, because
+    # Image visual uses a different anchor (top-left corner) rather than the
+    # center-left corner used by ColorBar visual.).
     self.transform.reset()
-    self.transform.translate((self.pos[0], self.pos[1] - self.size[1]/2.))
+    self.transform.translate((self.pos[0]/2.618, # make the gap smaller :)
+                              self.pos[1] - self.size[1]/2.))
 
     # Update the canvas size.
     self.canvas_size = event.size
@@ -99,6 +102,11 @@ class Colorbar(scene.visuals.Image):
 
     # Convert cmap and clim to Matplotlib format.
     rgba = self.cmap.colors.rgba
+    # Blend to white to avoid this Matplotlib rendering issue:
+    # https://github.com/matplotlib/matplotlib/issues/1188
+    for i in range(3):
+      rgba[:, i] = (1 - rgba[:, -1]) + rgba[:, -1]*rgba[:, i]
+    rgba[:, -1] = 1.
     if len(rgba) < 2: # in special case of 'grays' cmap!
       rgba = np.array([[0,0,0, 1.], [1,1,1, 1.]])
     cmap = LinearSegmentedColormap.from_list('vispy_cmap', rgba)
@@ -106,7 +114,10 @@ class Colorbar(scene.visuals.Image):
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 
     # Put the colorbar at proper location on the Matplotlib fig.
-    fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
+    fig = plt.figure(figsize=figsize, dpi=dpi)
+    ax = plt.Axes(fig, [0, 0, 1, 1])
+    ax.set_axis_off()
+    fig.add_axes(ax)
     divider = make_axes_locatable(ax)
     cax = divider.append_axes('right', size='100%', pad=0.)
     cb = fig.colorbar(sm, cax=cax)
