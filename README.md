@@ -73,11 +73,17 @@ Also try [`osv_F3_demo.py`](./osv_F3_demo.py) to check out the results from this
 <img src='./imgs/Planarity.png' alt='Planarity' width=640/>
 <img src='./imgs/Fault Semblance.png' alt='Fault Semblance' width=640/>
 <img src='./imgs/Fault Strike Angle.png' alt='Fault Strike Angle' width=640/>
+
 Using 2D markers to visualize a randomly generated well logs.
+
 <img src='./imgs/Voting Scores.png' alt='Voting Scores' width=640/>
+
 Using triangle mesh surfaces to visualize `FaultSkin`s.
+
 <img src='./imgs/Fault Surfaces.png' alt='Fault Surfaces' width=640/>
+
 A dark themed example with a z-axis-up axis legend:
+
 <img src='./imgs/Fault Likelihood.png' alt='Fault Likelihood' width=640/>
 
 To-Do List
