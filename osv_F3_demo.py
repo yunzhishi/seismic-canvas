@@ -162,18 +162,15 @@ if __name__ == '__main__':
   well_log_colors = np.array([cmap.map(x) for x in values]).squeeze()
   well_log = Markers(pos=well_log_coords, symbol='hbar', size=15,
     face_color=well_log_colors, edge_width=0)
-  well_log.set_gl_state(depth_test=False)
-  visual_nodes.append(well_log)
 
   canvas4 = SeismicCanvas(title='Voting Scores',
-                          visual_nodes=visual_nodes,
+                          visual_nodes=visual_nodes + [well_log],
                           xyz_axis=xyz_axis,
                           colorbar=colorbar,
                           **canvas_params)
 
 
   # Image 5: seismic with fault skin surfaces (meshes).
-  fault_surfaces = []
   fault_cmap = 'hsl'
   fault_range = (0, 180)
 
@@ -223,9 +220,8 @@ if __name__ == '__main__':
   colorbar = Colorbar(cmap=fault_cmap, clim=fault_range,
                       label_str='Fault Strike Angle', size=colorbar_size)
 
-  visual_nodes.append(fault_surface)
   canvas5 = SeismicCanvas(title='Fault Surfaces',
-                          visual_nodes=visual_nodes,
+                          visual_nodes=visual_nodes + [fault_surface],
                           xyz_axis=xyz_axis,
                           colorbar=colorbar,
                           **canvas_params)

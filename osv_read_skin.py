@@ -93,9 +93,8 @@ class FaultSkin(object):
       dip = param[5]
       slip = (param[8], param[7], param[6]) # reverse the zyx order to xyz
 
-      cell = FaultCell(i, pos=pos, likelihood=likelihood,
-                       strike=strike, dip=dip, slip=slip)
-      self.cells.append(cell)
+      self.cells.append(FaultCell(i, pos=pos, likelihood=likelihood,
+                                  strike=strike, dip=dip, slip=slip))
 
     # Read cell neighbor indexes in chunk.
     fmt = '>{:d}i'.format(4 * num_cells) # 4 neighbor indexes per cell
@@ -103,19 +102,18 @@ class FaultSkin(object):
 
     # Get the neighboring cell index for each cell.
     for i in range(num_cells):
-      neighbor = cell_neighbors[4*i: 4*(i+1)]
       # Neighbor above current cell.
-      if neighbor[0] < 0: self.cells[i].above = None
-      else: self.cells[i].above = self.cells[neighbor[0]]
+      if cell_neighbors[4*i] >= 0:
+        self.cells[i].above = self.cells[cell_neighbors[4*i]]
       # Neighbor below current cell.
-      if neighbor[1] < 0: self.cells[i].below = None
-      else: self.cells[i].below = self.cells[neighbor[1]]
+      if cell_neighbors[4*i+1] >= 0:
+        self.cells[i].below = self.cells[cell_neighbors[4*i+1]]
       # Neighbor to the left of current cell.
-      if neighbor[2] < 0: self.cells[i].left = None
-      else: self.cells[i].left = self.cells[neighbor[2]]
+      if cell_neighbors[4*i+2] >= 0:
+        self.cells[i].left = self.cells[cell_neighbors[4*i+2]]
       # Neighbor to the right of current cell.
-      if neighbor[3] < 0: self.cells[i].right = None
-      else: self.cells[i].right = self.cells[neighbor[3]]
+      if cell_neighbors[4*i+3] >= 0:
+        self.cells[i].right = self.cells[cell_neighbors[4*i+3]]
 
     self.f.close()
 
