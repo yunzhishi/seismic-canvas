@@ -2,8 +2,8 @@
 # -----------------------------------------------------------------------------
 # Copyright (C) 2019 Yunzhi Shi @ The University of Texas at Austin.
 # All rights reserved.
-# Distributed under the (new) BSD License. See LICENSE.txt for more info.
-# -----------------------------------------------------------------------------
+# Distributed under the MIT License. See LICENSE for more info.
+# ------------------------------------------------------------------------------
 
 import io
 import numpy as np

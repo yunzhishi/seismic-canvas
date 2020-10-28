@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 # Copyright (C) 2019 Yunzhi Shi @ The University of Texas at Austin.
 # All rights reserved.
-# Distributed under the (new) BSD License. See LICENSE.txt for more info.
+# Distributed under the MIT License. See LICENSE for more info.
 # -----------------------------------------------------------------------------
 
 from .seismic_canvas import SeismicCanvas
@@ -20,3 +20,6 @@ except ImportError:
   warn("Module matplotlib/tkinter missing, using vispy stock colorbar")
   # Use vispy stock colorbar if MPL is not available.
   from .colorbar import Colorbar
+
+
+__version__ = '0.1.0'
